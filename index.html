@@ -286,8 +286,8 @@ a{color:var(--accent2);text-decoration:none}
       <div class="stat-card"><div class="label">Accepted</div><div class="value" id="pl-accepted">—</div><div class="sub">ready to schedule</div></div>
     </div>
     <div class="data-wrap">
-      <table><thead><tr><th>Client</th><th>Town</th><th>Status</th><th>Estimate</th><th>Date Added</th></tr></thead>
-      <tbody id="pipeline-tbody"><tr><td colspan="5" class="loading-row">Loading pipeline...</td></tr></tbody></table>
+      <table><thead><tr><th>Estimate / Job</th><th>Status</th><th>Amount</th></tr></thead>
+      <tbody id="pipeline-tbody"><tr><td colspan="3" class="loading-row">Loading pipeline...</td></tr></tbody></table>
     </div>
   </div>
 
@@ -437,6 +437,7 @@ var AIRTABLE_BASE=_CFG.at_base||'appoqvmZktRnMLCbV';
 var N8N_BASE=_CFG.n8n_base||'';
 var N8N_KEY=_CFG.n8n_key||'';
 var AT_CLIENTS='tblWfs3iE96gjyRgW';
+  var AT_ESTIMATES='tblEbpuUzbrDuemUm';
 var AT_JOBS='tbl9tj2gGAfjRCVQL';
 var AT_MATERIALS='tblGsmWKpCeXjCrYs';
 
@@ -494,17 +495,18 @@ var pipelineLoaded=false;
 function loadPipeline(){
   document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="5" class="loading-row">Loading pipeline data...</td></tr>';
   var statuses=['Estimate Sent','Follow-Up','Contacted','Estimate Scheduled','Estimate Accepted','Scheduled'];
-  var filterFormula='OR('+statuses.map(function(s){return'%7BLead Status%7D%3D%22'+encodeURIComponent(s)+'%22'}).join(',')+')'
-  var params='filterByFormula='+filterFormula+'&fields%5B%5D=Name&fields%5B%5D=Phone&fields%5B%5D=Town&fields%5B%5D=Lead+Status&fields%5B%5D=Estimate+Amount&fields%5B%5D=Date+Added&pageSize=100';
+  // Use Estimates table: Status = Sent/Accepted/Declined, has Estimate Amount + Estimate Notes
+  var params='fields%5B%5D=Status&fields%5B%5D=Estimate+Amount&fields%5B%5D=Estimate+Notes&fields%5B%5D=Client&pageSize=200';
   atFetch(AT_CLIENTS,params,function(recs,err){
     if(err){document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="5" class="error-row">Error: '+err+'</td></tr>';return}
+    recs = recs.filter(function(r){return r.fields['Status']!=='Declined'});
     recs.sort(function(a,b){return(b.fields['Estimate Amount']||0)-(a.fields['Estimate Amount']||0)});
     var total=0,sent=0,accepted=0,followups=0;
-    recs.forEach(function(r){var f=r.fields;total+=(f['Estimate Amount']||0);if(f['Lead Status']==='Estimate Sent')sent++;if(f['Lead Status']==='Estimate Accepted'||f['Lead Status']==='Scheduled')accepted++;if(f['Lead Status']==='Follow-Up')followups++;});
+    recs.forEach(function(r){var f=r.fields;total+=(f['Estimate Amount']||0);if(f['Status']==='Sent')sent++;if(f['Status']==='Accepted')accepted++;});
     document.getElementById('pl-total').textContent=fmt$(total);
     document.getElementById('pl-sent').textContent=sent;
     document.getElementById('pl-accepted').textContent=accepted;
-    var rows=recs.map(function(r){var f=r.fields;return'<tr><td>'+esc(f.Name||'—')+'</td><td>'+esc(f.Town||'—')+'</td><td>'+statusBadge(f['Lead Status']||'')+'</td><td>'+fmt$(f['Estimate Amount'])+'</td><td>'+fmtDate(f['Date Added'])+'</td></tr>'}).join('');
+    var rows=recs.map(function(r){var f=r.fields;return'<tr><td>'+esc(f['Estimate Notes']||'—')+'</td><td>'+estStatusBadge(f['Status']||'')+'</td><td>'+fmt$(f['Estimate Amount'])+'</td></tr>'}).join('');
     document.getElementById('pipeline-tbody').innerHTML=rows||'<tr><td colspan="5" class="loading-row">No pipeline records found</td></tr>';
     pipelineLoaded=true;
   });
