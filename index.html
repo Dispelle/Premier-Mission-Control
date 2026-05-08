@@ -574,18 +574,17 @@ function loadReceipts(){
 
 /* OFFICE STATS (load on init) */
 function loadOfficeStats(){
-  /* Pipeline total */
-  var statuses=['Estimate Sent','Follow-Up','Contacted','Estimate Scheduled','Estimate Accepted','Scheduled'];
-  var ff='OR('+statuses.map(function(s){return'%7BLead Status%7D%3D%22'+encodeURIComponent(s)+'%22'}).join(',')+')'
-  atFetch(AT_CLIENTS,'filterByFormula='+ff+'&fields%5B%5D=Estimate+Amount&fields%5B%5D=Lead+Status&pageSize=100',function(recs){
+  /* Pipeline total — from Estimates table */
+  atFetch(AT_ESTIMATES,'fields%5B%5D=Estimate+Amount&fields%5B%5D=Status&pageSize=200',function(recs){
     if(!recs)return;
+    var active=recs.filter(function(r){return r.fields['Status']!=='Declined';});
     var total=0,sent=0;
-    recs.forEach(function(r){total+=(r.fields['Estimate Amount']||0);if(r.fields['Lead Status']==='Estimate Sent')sent++;});
+    active.forEach(function(r){total+=(r.fields['Estimate Amount']||0);if(r.fields['Status']==='Sent')sent++;});
     document.getElementById('stat-pipeline').textContent=fmt$(total);
-    document.getElementById('stat-estimates').textContent=sent;
+    document.getElementById('stat-estimates').textContent=sent+' sent';
   });
   /* Active jobs */
-  atFetch(AT_JOBS,'filterByFormula=%7BJob+Status%7D%3D%22In+Progress%22&fields%5B%5D=Job+name&pageSize=100',function(recs){
+  atFetch(AT_JOBS,'filterByFormula=%7BJob+Status%7D%3D%27In+Progress%27&fields%5B%5D=Job+Status&pageSize=100',function(recs){
     if(recs)document.getElementById('stat-jobs').textContent=recs.length;
   });
   /* This month materials */
