@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Premier Painting — Mission Control</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #161b25;
+    --border: #1e2535;
+    --accent: #2563eb;
+    --accent2: #f59e0b;
+    --green: #22c55e;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --card: #1a2030;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent2); }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; transition: all .15s; }
+  .btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #clock { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 200px 1fr; min-height: calc(100vh - 53px); }
+
+  /* Sidebar */
+  .sidebar { background: var(--panel); border-right: 1px solid var(--border); padding: 16px 0; }
+  .nav-section { margin-bottom: 8px; }
+  .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); padding: 0 16px; margin-bottom: 4px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; font-size: 13px; color: var(--muted); transition: all .15s; border-left: 2px solid transparent; }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+  .nav-item.active { color: #fff; background: rgba(37,99,235,.15); border-left-color: var(--accent); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+
+  /* Main */
+  .main { padding: 24px; overflow-y: auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+
+  /* Cards / Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 8px; }
+  .card-value { font-size: 28px; font-weight: 700; }
+  .card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .card-green { border-left: 3px solid var(--green); }
+  .card-blue { border-left: 3px solid var(--accent); }
+  .card-yellow { border-left: 3px solid var(--accent2); }
+  .card-red { border-left: 3px solid var(--red); }
+
+  /* Section */
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
+  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .section-title { font-size: 14px; font-weight: 600; }
+  .section-body { padding: 0; }
+  .table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table th { padding: 10px 18px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .table td { padding: 12px 18px; border-bottom: 1px solid rgba(30,37,53,.6); vertical-align: middle; }
+  .table tr:last-child td { border-bottom: none; }
+  .table tr:hover td { background: rgba(255,255,255,.02); }
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+  .badge-green { background: rgba(34,197,94,.15); color: #4ade80; }
+  .badge-yellow { background: rgba(245,158,11,.15); color: #fbbf24; }
+  .badge-red { background: rgba(239,68,68,.15); color: #f87171; }
+  .badge-blue { background: rgba(37,99,235,.15); color: #60a5fa; }
+  .badge-gray { background: rgba(100,116,139,.15); color: #94a3b8; }
+
+  /* Office */
+  .office-container { position: relative; background: #0a0c10; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
+  .office-grid { 
+    display: grid; 
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(8, 60px);
+    gap: 0;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 60px),
+                      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 100%);
+  }
+  .desk { 
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    padding-bottom: 6px; position: relative; cursor: default;
+  }
+  .desk-surface { 
+    width: 52px; height: 28px; 
+    background: linear-gradient(180deg, #2a3040 0%, #1e2535 100%); 
+    border-radius: 4px 4px 2px 2px; 
+    border: 1px solid #374151; 
+    box-shadow: 0 3px 0 #111827;
+    position: absolute; bottom: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .monitor { width: 22px; height: 14px; background: #0d1117; border: 1px solid #374151; border-radius: 2px; }
+  .monitor.active { background: linear-gradient(135deg, #1e3a5f, #0d2137); border-color: #3b82f6; box-shadow: 0 0 6px rgba(59,130,246,.4); }
+  .agent-sprite { font-size: 22px; position: absolute; bottom: 44px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+  .agent-label { font-size: 9px; color: var(--muted); position: absolute; bottom: 6px; white-space: nowrap; }
+  .agent-status-dot { position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; }
+  .plant { font-size: 28px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; }
+
+  /* Agent cards */
+  .agent-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+  .agent-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .15s; }
+  .agent-card:hover { border-color: var(--accent); background: rgba(37,99,235,.06); }
+  .agent-avatar { font-size: 28px; }
+  .agent-info { flex: 1; }
+  .agent-name { font-size: 13px; font-weight: 600; }
+  .agent-role { font-size: 11px; color: var(--muted); }
+  .agent-stat { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* Cron */
+  .cron-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(30,37,53,.6); }
+  .cron-item:last-child { border-bottom: none; }
+  .cron-icon { font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(37,99,235,.1); border-radius: 6px; }
+  .cron-info { flex: 1; }
+  .cron-name { font-size: 13px; font-weight: 500; }
+  .cron-schedule { font-size: 11px; color: var(--muted); }
+  .cron-last { font-size: 11px; color: var(--muted); text-align: right; }
+
+  /* Activity */
+  .activity-item { display: flex; gap: 12px; padding: 10px 18px; }
+  .activity-line { display: flex; flex-direction: column; align-items: center; }
+  .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
+  .activity-connector { width: 1px; flex: 1; background: var(--border); margin-top: 4px; }
+  .activity-content { flex: 1; padding-bottom: 10px; }
+  .activity-text { font-size: 13px; }
+  .activity-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Memory */
+  .memory-entry { padding: 14px 18px; border-bottom: 1px solid rgba(30,37,53,.6); }
+  .memory-entry:last-child { border-bottom: none; }
+  .memory-date { font-size: 11px; color: var(--accent2); font-weight: 600; margin-bottom: 4px; }
+  .memory-text { font-size: 13px; color: var(--text); line-height: 1.5; }
+
+  /* Loading */
+  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; padding: 20px 18px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state { padding: 32px 18px; text-align: center; color: var(--muted); font-size: 13px; }
+  .tag { display: inline-block; background: rgba(37,99,235,.1); color: #60a5fa; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 500; }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="status-dot"></div>
+    <div class="logo">Premier <span>Painting</span> — Mission Control</div>
+  </div>
+  <div class="header-right">
+    <span id="clock"></span>
+    <button class="btn btn-accent" onclick="refreshAll()">⟳ Refresh</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showPage('office')" id="nav-office">
+        <span class="nav-icon">🏢</span> Office
+      </div>
+      <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks">
+        <span class="nav-icon">⚡</span> Tasks
+      </div>
+      <div class="nav-item" onclick="showPage('activity')" id="nav-activity">
+        <span class="nav-icon">📡</span> Activity
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Business</div>
+      <div class="nav-item" onclick="showPage('receipts')" id="nav-receipts">
+        <span class="nav-icon">🧾</span> Receipts
+      </div>
+      <div class="nav-item" onclick="showPage('jobs')" id="nav-jobs">
+        <span class="nav-icon">🏠</span> Jobs
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Agent</div>
+      <div class="nav-item" onclick="showPage('memory')" id="nav-memory">
+        <span class="nav-icon">🧠</span> Memory
+      </div>
+      <div class="nav-item" onclick="showPage('agents')" id="nav-agents">
+        <span class="nav-icon">🤖</span> Agents
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- OFFICE PAGE -->
+    <div class="page active" id="page-office">
+      <div class="page-title">Office</div>
+      <div class="page-sub">Live view of your AI team</div>
+
+      <div class="office-container">
+        <div class="office-grid" id="office-grid">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <div class="agent-cards" id="agent-cards"></div>
+    </div>
+
+    <!-- TASKS PAGE -->
+    <div class="page" id="page-tasks">
+      <div class="page-title">Scheduled Tasks</div>
+      <div class="page-sub">Active cron jobs and automations</div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">🔄 Running Automations</span>
+          <span class="badge badge-green">● Live</span>
+        </div>
+        <div class="section-body" id="cron-list">
+          <div class="loading"><div class="spinner"></div> Loading cron jobs...</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">📬 Gmail Scanner Status</span>
+        </div>
+        <div class="section-body" id="scanner-status">
+          <div class="loading"><div class="spinner"></div> Checking...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECEIPTS PAGE -->
+    <div class="page" id="page-receipts">
+      <div class="page-title">Material Receipts</div>
+      <div class="page-sub">Auto-logged from Gmail → Airtable</div>
+
+      <div class="grid-4" id="receipt-stats"></div>
+
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Recent Purchases</span>
+        </div>
+        <div class="section-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Supplier</th>
+                <th>Job</th>
+                <th>Date</th>
+                <th>Cost</th>
+                <th>Source</th>
+              </tr>
+            </thead>
+            <tbody id="receipts-tbody">
+              <tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading receipts...</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOBS PAGE -->
+    <div class="page" id="page-jobs">
+      <div class="page-title">Active Jobs</div>
+      <div class="page-sub">Current projects at Premier Painting</div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Job Board</span></div>
+        <div class="section-body" id="jobs-body">
+          <div class="empty-state">📋 Job board coming soon — connect PaintScout to auto-populate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY PAGE -->
+    <div class="page" id="page-activity">
+      <div class="page-title">Activity Log</div>
+      <div class="page-sub">Recent actions by Finn</div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Today's Activity</span></div>
+        <div class="section-body" id="activity-body">
+          <div id="activity-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMORY PAGE -->
+    <div class="page" id="page-memory">
+      <div class="page-title">Memory</div>
+      <div class="page-sub">What Finn remembers</div>
+      <div class="section">
+        <div class="section-header"><span class="section-title">Stored Context</span></div>
+        <div class="section-body" id="memory-body">
+          <div id="memory-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AGENTS PAGE -->
+    <div class="page" id="page-agents">
+      <div class="page-title">Agents</div>
+      <div class="page-sub">Your AI team at Premier Painting</div>
+      <div class="agent-cards">
+        <div class="agent-card">
+          <div class="agent-avatar">🐾</div>
+          <div class="agent-info">
+            <div class="agent-name">Finn</div>
+            <div class="agent-role">Main Agent — Always On</div>
+            <div class="agent-stat">Handles everything: receipts, estimates, strategy, automation</div>
+          </div>
+        </div>
+        <div class="agent-card" style="opacity:.6">
+          <div class="agent-avatar">🔍</div>
+          <div class="agent-info">
+            <div class="agent-name">Scout</div>
+            <div class="agent-role">Sub-agent — On Demand</div>
+            <div class="agent-stat">Spins up for research & web tasks</div>
+          </div>
+        </div>
+        <div class="agent-card" style="opacity:.6">
+          <div class="agent-avatar">📋</div>
+          <div class="agent-info">
+            <div class="agent-name">Scribe</div>
+            <div class="agent-role">Sub-agent — On Demand</div>
+            <div class="agent-stat">Estimate writing, SOW drafts, follow-up copy</div>
+          </div>
+        </div>
+        <div class="agent-card" style="opacity:.6">
+          <div class="agent-avatar">⚡</div>
+          <div class="agent-info">
+            <div class="agent-name">Sync</div>
+            <div class="agent-role">Sub-agent — On Demand</div>
+            <div class="agent-stat">n8n automation & Airtable syncs</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top: 16px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 10px;">
+        <div style="font-size: 13px; color: var(--muted); line-height: 1.6;">
+          💡 <strong style="color: var(--text)">How sub-agents work:</strong> Scout, Scribe, and Sync aren't paid separate agents — they're temporary workers Finn spins up when needed. Same capabilities, no extra cost. When a task is done, they disappear. Only Finn is always on.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== CONFIG (loaded from localStorage, set by init script) =====
+const _CFG = JSON.parse(localStorage.getItem('pp_mc_cfg') || '{}');
+const AIRTABLE_TOKEN = _CFG.at_token || '';
+const AIRTABLE_BASE = _CFG.at_base || 'appoqvmZktRnMLCbV';
+const AIRTABLE_TABLE = _CFG.at_table || 'tblGsmWKpCeXjCrYs';
+const N8N_BASE = _CFG.n8n_base || 'https://premierpainting.app.n8n.cloud';
+const N8N_KEY = _CFG.n8n_key || '';
+
+// ===== NAV =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'receipts') loadReceipts();
+  if (name === 'tasks') loadTasks();
+  if (name === 'activity') loadActivity();
+  if (name === 'memory') loadMemory();
+}
+
+// ===== CLOCK =====
+function updateClock() {
+  const now = new Date();
+  const et = new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York'}));
+  const h = et.getHours().toString().padStart(2,'0');
+  const m = et.getMinutes().toString().padStart(2,'0');
+  const ampm = et.getHours() >= 12 ? 'PM' : 'AM';
+  const h12 = ((et.getHours() % 12) || 12).toString().padStart(2,'0');
+  document.getElementById('clock').textContent = `${h12}:${m} ${ampm} ET`;
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ===== OFFICE =====
+function buildOffice() {
+  const grid = document.getElementById('office-grid');
+  // 8 rows × 12 cols = 96 cells
+  const cells = Array(96).fill(null);
+  
+  // Finn's desk at position row 2, col 3 (index 2*12+3=27)
+  cells[14] = {type:'plant'};
+  cells[20] = {type:'desk', agent: {name:'Finn', emoji:'🐾', active:true, role:'Main Agent'}};
+  cells[37] = {type:'desk', agent: {name:'Scout', emoji:'🔍', active:false, role:'On Demand'}};
+  cells[45] = {type:'desk', agent: {name:'Scribe', emoji:'📋', active:false, role:'On Demand'}};
+  cells[53] = {type:'desk', agent: {name:'Sync', emoji:'⚡', active:false, role:'On Demand'}};
+  cells[83] = {type:'plant'};
+  cells[71] = {type:'plant'};
+
+  grid.innerHTML = '';
+  for (let i = 0; i < 96; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'desk';
+    const c = cells[i];
+    if (c && c.type === 'plant') {
+      cell.innerHTML = '<span class="plant">🌿</span>';
+    } else if (c && c.type === 'desk') {
+      const a = c.agent;
+      cell.innerHTML = `
+        <span class="agent-sprite">${a.emoji}</span>
+        <div class="desk-surface"><div class="monitor ${a.active ? 'active' : ''}"></div></div>
+        <span class="agent-label">${a.name}</span>
+      `;
+    }
+    grid.appendChild(cell);
+  }
+
+  // Agent cards
+  const agents = [
+    {name:'Finn', emoji:'🐾', role:'Main Agent — Always On', stat:'Primary agent for Premier Painting', active:true},
+    {name:'Scout', emoji:'🔍', role:'Sub-agent — On Demand', stat:'Research & web tasks', active:false},
+    {name:'Scribe', emoji:'📋', role:'Sub-agent — On Demand', stat:'Estimates, SOW, follow-up copy', active:false},
+    {name:'Sync', emoji:'⚡', role:'Sub-agent — On Demand', stat:'n8n automation & Airtable syncs', active:false},
+  ];
+  const cardsEl = document.getElementById('agent-cards');
+  cardsEl.innerHTML = agents.map(a => `
+    <div class="agent-card" style="${!a.active ? 'opacity:.6' : ''}">
+      <div class="agent-avatar">${a.emoji}</div>
+      <div class="agent-info">
+        <div class="agent-name">${a.name} ${a.active ? '<span class="badge badge-green" style="font-size:10px">● active</span>' : '<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div>
+        <div class="agent-role">${a.role}</div>
+        <div class="agent-stat">${a.stat}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== RECEIPTS =====
+async function loadReceipts() {
+  const tbody = document.getElementById('receipts-tbody');
+  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading from Airtable...</div></td></tr>';
+  
+  try {
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}?sort[0][field]=Date%20Purchased&sort[0][direction]=desc&maxRecords=25`;
+    const res = await fetch(url, {headers: {'Authorization': 'Bearer ' + AIRTABLE_TOKEN}});
+    const data = await res.json();
+    
+    if (!data.records || !data.records.length) {
+      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No receipts found</div></td></tr>';
+      return;
+    }
+
+    // Stats
+    const today = new Date().toISOString().slice(0,10);
+    const thisMonth = today.slice(0,7);
+    const todayTotal = data.records.filter(r => r.fields['Date Purchased'] === today).reduce((s,r) => s + (r.fields['Total Cost']||0), 0);
+    const monthTotal = data.records.filter(r => (r.fields['Date Purchased']||'').startsWith(thisMonth)).reduce((s,r) => s + (r.fields['Total Cost']||0), 0);
+    const autoCount = data.records.filter(r => (r.fields['Notes']||'').includes('email:')).length;
+    
+    document.getElementById('receipt-stats').innerHTML = `
+      <div class="card card-green"><div class="card-title">Today's Spend</div><div class="card-value">$${todayTotal.toFixed(2)}</div><div class="card-sub">materials purchased today</div></div>
+      <div class="card card-blue"><div class="card-title">This Month</div><div class="card-value">$${monthTotal.toFixed(2)}</div><div class="card-sub">total material costs</div></div>
+      <div class="card card-yellow"><div class="card-title">Auto-Logged</div><div class="card-value">${autoCount}</div><div class="card-sub">via Gmail scanner</div></div>
+      <div class="card card-red"><div class="card-title">Total Records</div><div class="card-value">${data.records.length}</div><div class="card-sub">last 25 shown</div></div>
+    `;
+
+    tbody.innerHTML = data.records.map(r => {
+      const f = r.fields;
+      const isAuto = (f['Notes']||'').includes('email:');
+      const job = f['Job'] || '<span style="color:var(--red)">⚠️ Missing</span>';
+      return `<tr>
+        <td>${f['Item Name'] || '—'}</td>
+        <td>${f['Supplier'] || '—'}</td>
+        <td>${job}</td>
+        <td>${f['Date Purchased'] || '—'}</td>
+        <td><strong>$${(f['Total Cost']||0).toFixed(2)}</strong></td>
+        <td><span class="badge ${isAuto ? 'badge-green' : 'badge-gray'}">${isAuto ? '🤖 auto' : '✏️ manual'}</span></td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">⚠️ Error loading: ${e.message}</div></td></tr>`;
+  }
+}
+
+// ===== TASKS =====
+async function loadTasks() {
+  const el = document.getElementById('cron-list');
+  el.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
+
+  // Show static known cron jobs (n8n workflows act as our crons)
+  const tasks = [
+    { icon: '📧', name: 'Gmail Receipt Scanner — team@gopremierpainting', schedule: 'Every hour', last: 'Hourly', status: 'active', id: 'SxerJu26SzoCLnUZ' },
+    { icon: '📧', name: 'Gmail Receipt Scanner — contactapainter', schedule: 'Every hour', last: 'Hourly', status: 'active', id: '8KQAUrPXrZgr9CU6' },
+  ];
+
+  el.innerHTML = tasks.map(t => `
+    <div class="cron-item">
+      <div class="cron-icon">${t.icon}</div>
+      <div class="cron-info">
+        <div class="cron-name">${t.name}</div>
+        <div class="cron-schedule">${t.schedule} · <span style="color:var(--muted);font-size:10px">ID: ${t.id}</span></div>
+      </div>
+      <div>
+        <span class="badge ${t.status === 'active' ? 'badge-green' : 'badge-red'}">● ${t.status}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Scanner status
+  const scanEl = document.getElementById('scanner-status');
+  scanEl.innerHTML = `
+    <div style="padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Gmail Accounts Monitored</div>
+        <div style="font-size:13px;margin-bottom:4px">📧 team@gopremierpainting.com</div>
+        <div style="font-size:13px">📧 contactapainter@gmail.com</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Sender Filters</div>
+        <div style="font-size:12px;color:var(--muted)">ar@homedecorgroup.com</div>
+        <div style="font-size:12px;color:var(--muted)">HomeDepot@order.homedepot.com</div>
+        <div style="font-size:12px;color:var(--muted)">hardwarestore@alerts.hardwarestore.com</div>
+      </div>
+    </div>
+    <div style="padding: 10px 18px; border-top: 1px solid var(--border); background: rgba(245,158,11,.05);">
+      <span style="font-size:12px;color:var(--accent2)">⚠️ contactapainter OAuth pending — needs manual credential connection in n8n</span>
+    </div>
+  `;
+}
+
+// ===== ACTIVITY =====
+function loadActivity() {
+  const activities = [
+    { text: 'Receipt scanner deployed for both Gmail inboxes', time: 'May 7, 2026', dot: 'var(--green)' },
+    { text: 'Material costs auto-logged: 7 items from Home Decor Group → Airtable (16 Jewett Rd)', time: 'May 7, 2026', dot: 'var(--green)' },
+    { text: 'Diagnosed splitInBatches bug — workflows rebuilt without it', time: 'May 7, 2026', dot: 'var(--accent)' },
+    { text: 'Gmail sender filters updated: added Home Depot, Aubuchon Hardware, Home Decor Group', time: 'May 7, 2026', dot: 'var(--accent)' },
+    { text: 'contactapainter Gmail OAuth credentials identified', time: 'May 7, 2026', dot: 'var(--accent2)' },
+    { text: 'Mission Control dashboard built 🎉', time: 'May 8, 2026', dot: 'var(--green)' },
+  ];
+
+  const list = document.getElementById('activity-list');
+  list.innerHTML = activities.reverse().map((a, i, arr) => `
+    <div class="activity-item">
+      <div class="activity-line">
+        <div class="activity-dot" style="background:${a.dot}"></div>
+        ${i < arr.length - 1 ? '<div class="activity-connector"></div>' : ''}
+      </div>
+      <div class="activity-content">
+        <div class="activity-text">${a.text}</div>
+        <div class="activity-time">${a.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== MEMORY =====
+function loadMemory() {
+  const memories = [
+    { date: 'Current Setup', text: 'Receipt Scanner running on both Gmail inboxes (hourly). Logs to Airtable base appoqvmZktRnMLCbV. SMS alerts via Twilio to +19784295580 if job address missing.' },
+    { date: 'Business Context', text: 'Premier Painting & Wallpapering — North Shore MA, 22 years. Bill Gilmore + Nikolai Gilmore. Uses PaintScout, GoHighLevel, Retell AI, n8n, Google Workspace.' },
+    { date: 'Pending Action', text: 'contactapainter Gmail OAuth still needs manual completion in n8n UI. Client ID: 420679841783-fri2bucme6tng5vklc0qrudahrjfvmpe.apps.googleusercontent.com' },
+    { date: 'Key Positioning', text: '110% Satisfaction Guarantee, no money down, 22 years, Google Guaranteed, Benjamin Moore. Target: Danvers, Topsfield, Boxford, Hamilton, Wenham, West Newbury area.' },
+  ];
+
+  const list = document.getElementById('memory-list');
+  list.innerHTML = memories.map(m => `
+    <div class="memory-entry">
+      <div class="memory-date">${m.date}</div>
+      <div class="memory-text">${m.text}</div>
+    </div>
+  `).join('');
+}
+
+function refreshAll() {
+  const activePage = document.querySelector('.page.active').id.replace('page-','');
+  if (activePage === 'receipts') loadReceipts();
+  if (activePage === 'tasks') loadTasks();
+}
+
+// ===== INIT =====
+buildOffice();
+loadActivity();
+loadMemory();
+</script>
+</body>
+</html>
