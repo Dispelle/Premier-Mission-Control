@@ -126,6 +126,20 @@
   @keyframes tickerIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:none} }
   /* sparkle */
   .spark { position:absolute; pointer-events:none; z-index:30; font-size:14px; animation:sparkPop .8s forwards; }
+  
+  .finn-robot{position:relative;width:34px;height:42px;display:inline-block}
+  .r-antenna{width:3px;height:9px;background:#3b82f6;border-radius:2px;margin:0 auto 1px;position:relative;box-shadow:0 0 6px #3b82f6}
+  .r-antenna::after{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:7px;height:7px;background:#60a5fa;border-radius:50%;box-shadow:0 0 10px #60a5fa;animation:antP 1.4s ease-in-out infinite}
+  @keyframes antP{0%,100%{box-shadow:0 0 6px #60a5fa}50%{box-shadow:0 0 18px #3b82f6,0 0 30px rgba(59,130,246,.5)}}
+  .r-head{width:28px;height:20px;background:linear-gradient(160deg,#1e40af,#1e3a8a);border-radius:5px;border:2px solid #3b82f6;box-shadow:0 0 14px rgba(59,130,246,.8),inset 0 0 8px rgba(59,130,246,.2);margin:0 auto;display:flex;align-items:center;justify-content:center;gap:5px}
+  .r-eye{width:7px;height:7px;background:#60a5fa;border-radius:1px;box-shadow:0 0 8px #3b82f6;animation:eyeG 2s ease-in-out infinite}
+  @keyframes eyeG{0%,100%{opacity:1;background:#60a5fa}50%{opacity:.5;background:#93c5fd}}
+  .r-body{width:22px;height:11px;background:linear-gradient(180deg,#1e3a8a,#172554);border-radius:2px;border:1.5px solid #3b82f6;box-shadow:0 0 8px rgba(59,130,246,.4);margin:2px auto 0;display:flex;align-items:center;justify-content:center;gap:3px}
+  .r-led{width:4px;height:4px;border-radius:50%;animation:ledB 1s step-end infinite}
+  .r-led.g{background:#22c55e;box-shadow:0 0 6px #22c55e}
+  .r-led.b{background:#3b82f6;box-shadow:0 0 6px #3b82f6;animation-delay:.3s}
+  .r-led.y{background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation-delay:.6s}
+  @keyframes ledB{0%,100%{opacity:1}50%{opacity:.2}}
   @keyframes sparkPop { 0%{opacity:1;transform:scale(0) translateY(0)} 50%{opacity:1;transform:scale(1.3) translateY(-12px)} 100%{opacity:0;transform:scale(.8) translateY(-24px)} }
   /* plants */
   .o-plant { position:absolute; font-size:32px; animation:plantSway 5s ease-in-out infinite; transform-origin:bottom center; filter:drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
@@ -672,11 +686,11 @@ loadMemory();
           <div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center">${d.label}</div>
         </div>
       `).join('')}
-      <div class="o-char active" id="finn-char" style="left:${desks[0].x+22}px;top:${desks[0].y-44}px">🐾</div>
+      <div class="o-char active" id="finn-char" style="left:${desks[0].x+10}px;top:${desks[0].y-62}px"><div class="finn-robot"><div class="r-antenna"></div><div class="r-head"><div class="r-eye"></div><div class="r-eye"></div></div><div class="r-body"><div class="r-led g"></div><div class="r-led b"></div><div class="r-led y"></div></div></div></div>
       <div class="o-char sleep" style="left:${desks[1].x+22}px;top:${desks[1].y-44}px">🔍</div>
       <div class="o-char sleep" style="left:${desks[2].x+22}px;top:${desks[2].y-44}px">📋</div>
       <div class="o-char sleep" style="left:${desks[3].x+22}px;top:${desks[3].y-44}px">⚡</div>
-      <div class="speech" id="finn-speech" style="left:${desks[0].x-10}px;top:${desks[0].y-92}px"></div>
+      <div class="speech" id="finn-speech" style="left:${desks[0].x+4}px;top:${desks[0].y-120}px"></div>
       <div class="o-ticker" id="o-ticker">
         <span class="ticker-badge">● LIVE</span>
         <span class="ticker-msg" id="ticker-text">${TICKER_MSGS[0]}</span>
@@ -716,8 +730,13 @@ loadMemory();
     const bubble = document.getElementById('finn-speech');
     let tIdx = 0;
     function showThought() {
-      if (!bubble) return;
+      if (!bubble || !finnEl) return;
       bubble.textContent = FINN_THOUGHTS[tIdx++ % FINN_THOUGHTS.length];
+      // Position bubble above wherever Finn currently is
+      const fx = parseInt(finnEl.style.left) || desks[0].x+14;
+      const fy = parseInt(finnEl.style.top)  || desks[0].y-58;
+      bubble.style.left = Math.max(8, fx-20) + 'px';
+      bubble.style.top  = (fy - 68) + 'px';
       bubble.classList.add('show');
       setTimeout(()=>bubble.classList.remove('show'), 3500);
     }
@@ -734,6 +753,8 @@ loadMemory();
       const t = walkTargets[wIdx];
       finnEl.style.left = t.x + 'px';
       finnEl.style.top  = t.y + 'px';
+      // move speech bubble with finn
+      if (bubble) { bubble.style.left = Math.max(8,t.x-20)+'px'; bubble.style.top=(t.y-68)+'px'; }
       // Light up that desk's monitor briefly
       desks.forEach(d=>{
         const s = document.getElementById('screen-'+d.label);
@@ -746,7 +767,7 @@ loadMemory();
         const s = document.createElement('div');
         s.className = 'spark';
         s.textContent = '✨';
-        s.style.left = t.x+'px'; s.style.top = (t.y-10)+'px';
+        s.style.left = (t.x+10)+'px'; s.style.top = (t.y-16)+'px';
         floor.appendChild(s);
         setTimeout(()=>s.remove(), 900);
       }, 900);
