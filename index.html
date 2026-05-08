@@ -467,12 +467,113 @@ let thoughtIdx = 0;
 let lineIdx = 0;
 let speechTimer, tickerTimer;
 
-function makeDesk(x, y, label, screenClass) {
-  return `
-  <div class="o-desk" style="left:${x}px;top:${y}px;position:absolute">
-    <div class="o-desk-top">
-      <div class="o-monitor">
-        <div class="o-screen ${
+function buildOffice() {
+  const floor = document.getElementById('office-floor');
+  if (!floor) return;
+  const FINN_LINES2 = [
+    '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
+    '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
+    '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
+    '> memory updated','> mission control: live','> analyzing invoice data'
+  ];
+  const FINN_THOUGHTS2 = [
+    '🤔 Checking for new receipts...','💡 Morning brief fires at 8 AM!','📊 Airtable looking clean.',
+    '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
+    '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
+    '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.'
+  ];
+  const TICKER2 = [
+    '📧 Gmail scanner running — both inboxes active',
+    '🧾 Last receipt: Home Decor Group — Peabody',
+    '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
+    '✅ Airtable sync: material costs up to date',
+    '🤖 Discord bot online — Nikolai\'s Market Lab connected',
+    '⚡ n8n: Receipt Scanner active on both inboxes',
+    '🔔 SMS alerts configured → +1 978-429-5580'
+  ];
+  const ROBOT = `<div class="finn-robot"><div class="r-antenna"></div><div class="r-head"><div class="r-eye"></div><div class="r-eye"></div></div><div class="r-body"><div class="r-led g"></div><div class="r-led b"></div><div class="r-led y"></div></div></div>`;
+  const desks = [
+    {x:55, y:75, label:'Finn',   cls:'green', main:true},
+    {x:255,y:65, label:'Scout',  cls:'blue'},
+    {x:455,y:75, label:'Scribe', cls:'blue'},
+    {x:655,y:65, label:'Sync',   cls:'blue'},
+  ];
+  floor.innerHTML = `
+    <div class="o-plant" style="left:8px;top:8px;animation-delay:0s">🌿</div>
+    <div class="o-plant" style="left:8px;top:230px;animation-delay:1.5s">🪴</div>
+    <div class="o-plant" style="left:820px;top:18px;animation-delay:.8s">🌿</div>
+    <div class="o-plant" style="left:820px;top:270px;animation-delay:2s">🪴</div>
+    <div style="position:absolute;left:106px;top:108px;font-size:16px;z-index:5">☕
+      <div class="steam" style="left:2px;top:-2px"></div>
+      <div class="steam" style="left:7px;top:-2px;animation-delay:.7s"></div>
+    </div>
+    ${desks.map(d=>`
+      <div class="o-desk" style="left:${d.x}px;top:${d.y}px;position:absolute">
+        <div class="o-desk-top">
+          <div class="o-monitor">
+            <div class="o-screen ${d.cls}" id="screen-${d.label}"><div class="term" id="term-${d.label}"></div></div>
+            <div class="o-stand"></div><div class="o-base"></div>
+          </div>
+        </div>
+        <div class="o-desk-leg"></div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px;text-align:center">${d.label}</div>
+      </div>`).join('')}
+    <div class="o-char active" id="finn-char" style="left:${desks[0].x+10}px;top:${desks[0].y-60}px">${ROBOT}</div>
+    <div class="o-char sleep" style="left:${desks[1].x+8}px;top:${desks[1].y-42}px">🔍</div>
+    <div class="o-char sleep" style="left:${desks[2].x+8}px;top:${desks[2].y-42}px">📋</div>
+    <div class="o-char sleep" style="left:${desks[3].x+8}px;top:${desks[3].y-42}px">⚡</div>
+    <div class="speech" id="finn-speech" style="left:${desks[0].x+4}px;top:${desks[0].y-118}px"></div>
+    <div class="o-ticker"><span class="ticker-badge">● LIVE</span><span class="ticker-msg" id="ticker-text">${TICKER2[0]}</span></div>
+  `;
+  // Terminal typing
+  let lIdx2 = 0;
+  const term = document.getElementById('term-Finn');
+  if (term) setInterval(()=>{
+    const l = document.createElement('div');
+    l.className = 'term-line';
+    l.textContent = FINN_LINES2[lIdx2++ % FINN_LINES2.length];
+    term.appendChild(l);
+    if (term.children.length > 10) term.removeChild(term.firstChild);
+    if (Math.random()>.65) {
+      const fl = document.getElementById('office-floor'), fn = document.getElementById('finn-char');
+      if (fl && fn) { const s=document.createElement('div'); s.className='spark'; s.textContent=['✨','⚡','💡','🎯'][Math.floor(Math.random()*4)]; s.style.left=(parseInt(fn.style.left)+14)+'px'; s.style.top=(parseInt(fn.style.top)-10)+'px'; fl.appendChild(s); setTimeout(()=>s.remove(),900); }
+    }
+  }, 1800);
+  // Speech bubbles
+  const bubble = document.getElementById('finn-speech');
+  const finnEl = document.getElementById('finn-char');
+  let tIdx2 = 0;
+  function showThought() {
+    if (!bubble||!finnEl) return;
+    bubble.textContent = FINN_THOUGHTS2[tIdx2++ % FINN_THOUGHTS2.length];
+    bubble.style.left = Math.max(8, parseInt(finnEl.style.left)-20)+'px';
+    bubble.style.top  = (parseInt(finnEl.style.top)-70)+'px';
+    bubble.classList.add('show');
+    setTimeout(()=>bubble.classList.remove('show'), 3500);
+  }
+  showThought(); setInterval(showThought, 7000);
+  // Finn wanders
+  const targets = desks.map((d,i)=>({x:d.x+10,y:d.y-60,i}));
+  let wIdx2 = 0;
+  setInterval(()=>{
+    if (!finnEl) return;
+    wIdx2 = (wIdx2+1)%targets.length;
+    const t = targets[wIdx2];
+    finnEl.style.left = t.x+'px'; finnEl.style.top = t.y+'px';
+    if (bubble) { bubble.style.left=Math.max(8,t.x-20)+'px'; bubble.style.top=(t.y-70)+'px'; }
+    desks.forEach((d,i)=>{ const s=document.getElementById('screen-'+d.label); if(s) s.className='o-screen '+(i===t.i?'green':'blue'); });
+    setTimeout(()=>{ const fl=document.getElementById('office-floor'); if(!fl)return; const s=document.createElement('div'); s.className='spark'; s.textContent='✨'; s.style.left=(t.x+10)+'px'; s.style.top=(t.y-16)+'px'; fl.appendChild(s); setTimeout(()=>s.remove(),900); },900);
+  }, 6000);
+  // Ticker
+  let tkIdx2 = 0;
+  setInterval(()=>{ tkIdx2=(tkIdx2+1)%TICKER2.length; const el=document.getElementById('ticker-text'); if(el){el.style.animation='none';el.textContent=TICKER2[tkIdx2];void el.offsetWidth;el.style.animation='';} },5000);
+  // Agent cards
+  const agents=[{name:'Finn',emoji:'🤖',role:'Main Agent — Always On',stat:'Primary agent for Premier Painting',active:true},{name:'Scout',emoji:'🔍',role:'Sub-agent — On Demand',stat:'Research & web tasks',active:false},{name:'Scribe',emoji:'📋',role:'Sub-agent — On Demand',stat:'Estimates, SOW, follow-up copy',active:false},{name:'Sync',emoji:'⚡',role:'Sub-agent — On Demand',stat:'n8n automation & Airtable syncs',active:false}];
+  const cardsEl=document.getElementById('agent-cards');
+  if(cardsEl) cardsEl.innerHTML=agents.map(a=>`<div class="agent-card" style="${!a.active?'opacity:.65':''}"><div class="agent-avatar">${a.emoji}</div><div class="agent-info"><div class="agent-name">${a.name} ${a.active?'<span class="badge badge-green" style="font-size:10px">● active</span>':'<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div><div class="agent-role">${a.role}</div><div class="agent-stat">${a.stat}</div></div></div>`).join('');
+}
+// dummy makeDesk (no longer used)
+function makeDesk(x, y, label, screenClass) { return ''; 
 
 // ===== RECEIPTS =====
 async function loadReceipts() {
@@ -624,183 +725,3 @@ loadMemory();
 </script>
 </body>
 </html>
-<script>
-// Patch: finish the animated office buildOffice that was cut off
-(function patchOffice(){
-  const orig = window.buildOffice;
-  window.buildOffice = function() {
-    const floor = document.getElementById('office-floor');
-    if (!floor) return;
-
-    const FINN_LINES = [
-      '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
-      '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
-      '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
-      '> memory updated','> mission control: live','> analyzing invoice data'
-    ];
-    const FINN_THOUGHTS = [
-      '🤔 Checking for new receipts...','💡 Morning brief fires at 8 AM!','📊 Airtable looking clean.',
-      '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
-      '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
-      '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.','💬 Just updated the activity log.'
-    ];
-    const TICKER_MSGS = [
-      '📧 Gmail scanner running — both inboxes active',
-      '🧾 Last receipt: Home Decor Group — Peabody',
-      '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
-      '✅ Airtable sync: material costs up to date',
-      '🤖 Discord bot online — Nikolai\'s Market Lab connected',
-      '📊 Mission control live on GitHub Pages',
-      '⚡ n8n: Receipt Scanner active on both inboxes',
-      '🔔 SMS alerts configured → +1 978-429-5580'
-    ];
-
-    const desks = [
-      {x:60,  y:80,  label:'Finn',   cls:'green', main:true},
-      {x:260, y:70,  label:'Scout',  cls:'blue',  main:false},
-      {x:460, y:80,  label:'Scribe', cls:'blue',  main:false},
-      {x:660, y:70,  label:'Sync',   cls:'blue',  main:false},
-    ];
-
-    const plants = [{x:10,y:10},{x:10,y:240},{x:830,y:20},{x:830,y:280}];
-    const coffee = {x:100, y:108};
-
-    floor.innerHTML = `
-      ${plants.map((p,i)=>`<div class="o-plant" style="left:${p.x}px;top:${p.y}px;animation-delay:${i*1.2}s">${i%2===0?'🌿':'🪴'}</div>`).join('')}
-      <div style="position:absolute;left:${coffee.x}px;top:${coffee.y}px;font-size:18px;z-index:5">☕
-        <div class="steam" style="left:3px;top:-2px;animation-delay:0s"></div>
-        <div class="steam" style="left:8px;top:-2px;animation-delay:.7s"></div>
-      </div>
-      ${desks.map(d=>`
-        <div class="o-desk" style="left:${d.x}px;top:${d.y}px">
-          <div class="o-desk-top">
-            <div class="o-monitor">
-              <div class="o-screen ${d.cls}" id="screen-${d.label}">
-                <div class="term" id="term-${d.label}"></div>
-              </div>
-              <div class="o-stand"></div>
-              <div class="o-base"></div>
-            </div>
-          </div>
-          <div class="o-desk-leg"></div>
-          <div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center">${d.label}</div>
-        </div>
-      `).join('')}
-      <div class="o-char active" id="finn-char" style="left:${desks[0].x+10}px;top:${desks[0].y-62}px"><div class="finn-robot"><div class="r-antenna"></div><div class="r-head"><div class="r-eye"></div><div class="r-eye"></div></div><div class="r-body"><div class="r-led g"></div><div class="r-led b"></div><div class="r-led y"></div></div></div></div>
-      <div class="o-char sleep" style="left:${desks[1].x+22}px;top:${desks[1].y-44}px">🔍</div>
-      <div class="o-char sleep" style="left:${desks[2].x+22}px;top:${desks[2].y-44}px">📋</div>
-      <div class="o-char sleep" style="left:${desks[3].x+22}px;top:${desks[3].y-44}px">⚡</div>
-      <div class="speech" id="finn-speech" style="left:${desks[0].x+4}px;top:${desks[0].y-120}px"></div>
-      <div class="o-ticker" id="o-ticker">
-        <span class="ticker-badge">● LIVE</span>
-        <span class="ticker-msg" id="ticker-text">${TICKER_MSGS[0]}</span>
-      </div>
-    `;
-
-    // Animate Finn's terminal
-    let lIdx = 0;
-    const finnTerm = document.getElementById('term-Finn');
-    if (finnTerm) {
-      setInterval(()=>{
-        const lines = FINN_LINES;
-        const line = document.createElement('div');
-        line.className = 'term-line';
-        line.textContent = lines[lIdx++ % lines.length];
-        finnTerm.appendChild(line);
-        if (finnTerm.children.length > 10) finnTerm.removeChild(finnTerm.firstChild);
-        finnTerm.scrollTop = finnTerm.scrollHeight;
-        // sparkle occasionally
-        if (Math.random() > .7) {
-          const floor = document.getElementById('office-floor');
-          const finn = document.getElementById('finn-char');
-          if (floor && finn) {
-            const s = document.createElement('div');
-            s.className = 'spark';
-            s.textContent = ['✨','⚡','💡','🎯'][Math.floor(Math.random()*4)];
-            s.style.left = (parseInt(finn.style.left)+10)+'px';
-            s.style.top  = (parseInt(finn.style.top)-10)+'px';
-            floor.appendChild(s);
-            setTimeout(()=>s.remove(), 900);
-          }
-        }
-      }, 1800);
-    }
-
-    // Speech bubble rotation
-    const bubble = document.getElementById('finn-speech');
-    let tIdx = 0;
-    function showThought() {
-      if (!bubble || !finnEl) return;
-      bubble.textContent = FINN_THOUGHTS[tIdx++ % FINN_THOUGHTS.length];
-      // Position bubble above wherever Finn currently is
-      const fx = parseInt(finnEl.style.left) || desks[0].x+14;
-      const fy = parseInt(finnEl.style.top)  || desks[0].y-58;
-      bubble.style.left = Math.max(8, fx-20) + 'px';
-      bubble.style.top  = (fy - 68) + 'px';
-      bubble.classList.add('show');
-      setTimeout(()=>bubble.classList.remove('show'), 3500);
-    }
-    showThought();
-    setInterval(showThought, 7000);
-
-    // Finn wanders between desks
-    const finnEl = document.getElementById('finn-char');
-    const walkTargets = desks.map((d,i)=>({x:d.x+22, y:d.y-44, idx:i}));
-    let wIdx = 0;
-    setInterval(()=>{
-      if (!finnEl) return;
-      wIdx = (wIdx + 1) % walkTargets.length;
-      const t = walkTargets[wIdx];
-      finnEl.style.left = t.x + 'px';
-      finnEl.style.top  = t.y + 'px';
-      // move speech bubble with finn
-      if (bubble) { bubble.style.left = Math.max(8,t.x-20)+'px'; bubble.style.top=(t.y-68)+'px'; }
-      // Light up that desk's monitor briefly
-      desks.forEach(d=>{
-        const s = document.getElementById('screen-'+d.label);
-        if (s) s.className = 'o-screen ' + (d.label === desks[t.idx].label ? 'green' : 'blue');
-      });
-      // spark at destination
-      setTimeout(()=>{
-        const floor = document.getElementById('office-floor');
-        if (!floor) return;
-        const s = document.createElement('div');
-        s.className = 'spark';
-        s.textContent = '✨';
-        s.style.left = (t.x+10)+'px'; s.style.top = (t.y-16)+'px';
-        floor.appendChild(s);
-        setTimeout(()=>s.remove(), 900);
-      }, 900);
-    }, 6000);
-
-    // Ticker rotation
-    let tkIdx = 0;
-    setInterval(()=>{
-      tkIdx = (tkIdx+1) % TICKER_MSGS.length;
-      const el = document.getElementById('ticker-text');
-      if (el) { el.style.animation='none'; el.textContent=TICKER_MSGS[tkIdx]; void el.offsetWidth; el.style.animation=''; }
-    }, 5000);
-
-    // Agent cards
-    const agents = [
-      {name:'Finn',   emoji:'🐾', role:'Main Agent — Always On',  stat:'Primary agent for Premier Painting', active:true},
-      {name:'Scout',  emoji:'🔍', role:'Sub-agent — On Demand',   stat:'Research & web tasks', active:false},
-      {name:'Scribe', emoji:'📋', role:'Sub-agent — On Demand',   stat:'Estimates, SOW, follow-up copy', active:false},
-      {name:'Sync',   emoji:'⚡', role:'Sub-agent — On Demand',   stat:'n8n automation & Airtable syncs', active:false},
-    ];
-    const cardsEl = document.getElementById('agent-cards');
-    if (cardsEl) cardsEl.innerHTML = agents.map(a=>`
-      <div class="agent-card" style="${!a.active?'opacity:.65':''}">
-        <div class="agent-avatar">${a.emoji}</div>
-        <div class="agent-info">
-          <div class="agent-name">${a.name} ${a.active?'<span class="badge badge-green" style="font-size:10px">● active</span>':'<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div>
-          <div class="agent-role">${a.role}</div>
-          <div class="agent-stat">${a.stat}</div>
-        </div>
-      </div>`).join('');
-  };
-
-  // Call it
-  window.buildOffice();
-})();
-</script>
