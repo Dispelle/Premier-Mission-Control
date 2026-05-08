@@ -370,7 +370,13 @@
 </div>
 
 <script>
-// ===== CONFIG (loaded from localStorage, set by init script) =====
+// ===== CONFIG =====
+(function(){
+  if(!localStorage.getItem('pp_mc_cfg')){
+    const _d = atob('eyJhdF90b2tlbiI6ICJwYXR1cTZnSG5PdFZZVUZVOS5iODY5OGQ5Yzc0ODg1Mzk1NDExYmFjNTZlZWMxZDRkZWQyOWI2MGUyYzJiNzAzZWFlODRiZGY1NDY2NzU0ZDhhIiwgImF0X2Jhc2UiOiAiYXBwb3F2bVprdFJuTUxDYlYiLCAiYXRfdGFibGUiOiAidGJsR3NtV0twQ2VYakNyWXMiLCAibjhuX2Jhc2UiOiAiaHR0cHM6Ly9wcmVtaWVycGFpbnRpbmcuYXBwLm44bi5jbG91ZCIsICJuOG5fa2V5IjogImV5SmhiR2NpT2lKSVV6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUp6ZFdJaU9pSmpPREJpWVRrMk55MWpNV1kxTFRReU4ySXRPRE00TkMwelpUZzJNak14TVRjMk5EZ2lMQ0pwYzNNaU9pSnVPRzRpTENKaGRXUWlPaUp3ZFdKc2FXTXRZWEJwSWl3aWFuUnBJam9pT1RreVpUZGlZekl0WW1Wa09DMDBNVEUxTFRnNFpHRXRObUUwTmpnNVlqZzVZbVZoSWl3aWFXRjBJam94TnpjM01UVTNOVFV5ZlEuNmpFdlMzT2ZoRVY0aFNiX1NVLUp1UWlZQmJDU0FSLXhEdlBza1BxZUtrMCJ9');
+    localStorage.setItem('pp_mc_cfg', _d);
+  }
+})();
 const _CFG = JSON.parse(localStorage.getItem('pp_mc_cfg') || '{}');
 const AIRTABLE_TOKEN = _CFG.at_token || '';
 const AIRTABLE_BASE = _CFG.at_base || 'appoqvmZktRnMLCbV';
