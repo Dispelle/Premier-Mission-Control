@@ -87,35 +87,52 @@
   .badge-gray { background: rgba(100,116,139,.15); color: #94a3b8; }
 
   /* Office */
-  .office-container { position: relative; background: #0a0c10; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
-  .office-grid { 
-    display: grid; 
-    grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: repeat(8, 60px);
-    gap: 0;
-    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 60px),
-                      repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0px, rgba(255,255,255,.03) 1px, transparent 1px, transparent 100%);
-  }
-  .desk { 
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-    padding-bottom: 6px; position: relative; cursor: default;
-  }
-  .desk-surface { 
-    width: 52px; height: 28px; 
-    background: linear-gradient(180deg, #2a3040 0%, #1e2535 100%); 
-    border-radius: 4px 4px 2px 2px; 
-    border: 1px solid #374151; 
-    box-shadow: 0 3px 0 #111827;
-    position: absolute; bottom: 18px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .monitor { width: 22px; height: 14px; background: #0d1117; border: 1px solid #374151; border-radius: 2px; }
-  .monitor.active { background: linear-gradient(135deg, #1e3a5f, #0d2137); border-color: #3b82f6; box-shadow: 0 0 6px rgba(59,130,246,.4); }
-  .agent-sprite { font-size: 22px; position: absolute; bottom: 44px; animation: float 3s ease-in-out infinite; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
-  .agent-label { font-size: 9px; color: var(--muted); position: absolute; bottom: 6px; white-space: nowrap; }
-  .agent-status-dot { position: absolute; top: 2px; right: 2px; width: 6px; height: 6px; border-radius: 50%; }
-  .plant { font-size: 28px; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 4px; }
+  /* ══ OFFICE ══ */
+  .office-container { position:relative; background:#060912; border-radius:12px; overflow:hidden; border:1px solid var(--border); margin-bottom:16px; min-height:380px; }
+  .office-floor { position:relative; width:100%; height:380px;
+    background: radial-gradient(ellipse at 15% 85%, rgba(37,99,235,.07) 0%, transparent 55%),
+                radial-gradient(ellipse at 85% 15%, rgba(245,158,11,.05) 0%, transparent 50%),
+                repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 50px),
+                repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 80px); }
+  /* desks */
+  .o-desk { position:absolute; display:flex; flex-direction:column; align-items:center; }
+  .o-desk-top { width:80px; height:42px; background:linear-gradient(160deg,#2e3a50,#1a2232); border-radius:6px 6px 3px 3px; border:1px solid #3a4558; box-shadow:0 4px 0 #0a0d15,0 8px 20px rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; position:relative; }
+  .o-desk-leg { width:58px; height:5px; background:#151d2e; border-radius:0 0 3px 3px; }
+  /* monitor */
+  .o-monitor { width:42px; height:28px; display:flex; flex-direction:column; align-items:center; }
+  .o-screen { width:36px; height:22px; border-radius:3px; overflow:hidden; position:relative; border:1.5px solid #374151; background:#020407; }
+  .o-screen.green { border-color:#22c55e; box-shadow:0 0 10px rgba(34,197,94,.35),inset 0 0 8px rgba(34,197,94,.06); background:#010f04; }
+  .o-screen.blue  { border-color:#3b82f6; box-shadow:0 0 8px rgba(59,130,246,.25); background:#010610; }
+  .o-stand { width:3px; height:4px; background:#374151; }
+  .o-base  { width:12px; height:2px; background:#374151; border-radius:1px; }
+  .term { position:absolute; inset:2px; font-family:monospace; font-size:3px; color:#22c55e; line-height:1.5; overflow:hidden; }
+  .term-line { white-space:nowrap; }
+  .cursor { display:inline-block; width:2px; height:4px; background:#22c55e; animation:blink .65s step-end infinite; vertical-align:bottom; margin-left:1px; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  /* characters */
+  .o-char { position:absolute; font-size:28px; z-index:10; transition:left .9s cubic-bezier(.34,1.56,.64,1), top .9s cubic-bezier(.34,1.56,.64,1); filter:drop-shadow(0 3px 6px rgba(0,0,0,.7)); pointer-events:none; }
+  .o-char.active { animation:finnBob 2.2s ease-in-out infinite; }
+  .o-char.sleep  { animation:sleepFloat 4s ease-in-out infinite; opacity:.55; }
+  @keyframes finnBob { 0%,100%{transform:translateY(0) rotate(-3deg)} 30%{transform:translateY(-7px) rotate(3deg)} 60%{transform:translateY(-4px) rotate(-1deg)} }
+  @keyframes sleepFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  /* speech bubble */
+  .speech { position:absolute; z-index:20; background:#1a2640; border:1.5px solid #3b82f6; border-radius:10px; padding:7px 11px; font-size:11.5px; color:#e2e8f0; max-width:170px; line-height:1.45; box-shadow:0 6px 24px rgba(0,0,0,.5); opacity:0; transition:opacity .35s; pointer-events:none; }
+  .speech::after { content:''; position:absolute; bottom:-8px; left:16px; border:8px solid transparent; border-top-color:#3b82f6; border-bottom:none; }
+  .speech.show { opacity:1; }
+  /* ticker */
+  .o-ticker { position:absolute; bottom:0; left:0; right:0; height:32px; background:rgba(6,9,18,.92); border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; padding:0 16px; font-size:11px; overflow:hidden; }
+  .ticker-badge { background:rgba(37,99,235,.2); color:#60a5fa; border-radius:4px; padding:1px 7px; font-size:10px; font-weight:600; white-space:nowrap; }
+  .ticker-msg { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; animation:tickerIn .4s ease; }
+  @keyframes tickerIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:none} }
+  /* sparkle */
+  .spark { position:absolute; pointer-events:none; z-index:30; font-size:14px; animation:sparkPop .8s forwards; }
+  @keyframes sparkPop { 0%{opacity:1;transform:scale(0) translateY(0)} 50%{opacity:1;transform:scale(1.3) translateY(-12px)} 100%{opacity:0;transform:scale(.8) translateY(-24px)} }
+  /* plants */
+  .o-plant { position:absolute; font-size:32px; animation:plantSway 5s ease-in-out infinite; transform-origin:bottom center; filter:drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
+  @keyframes plantSway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
+  /* coffee steam */
+  .steam { position:absolute; width:4px; border-radius:4px; background:rgba(255,255,255,.15); animation:steamRise 2s ease-in infinite; }
+  @keyframes steamRise { 0%{height:0;opacity:.5;transform:translateY(0) scaleX(1)} 100%{height:16px;opacity:0;transform:translateY(-18px) scaleX(1.5)} }
 
   /* Agent cards */
   .agent-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
@@ -221,11 +238,8 @@
       <div class="page-sub">Live view of your AI team</div>
 
       <div class="office-container">
-        <div class="office-grid" id="office-grid">
-          <!-- Populated by JS -->
-        </div>
+        <div class="office-floor" id="office-floor"><!-- JS --></div>
       </div>
-
       <div class="agent-cards" id="agent-cards"></div>
     </div>
 
@@ -408,58 +422,43 @@ function updateClock() {
 }
 setInterval(updateClock, 1000); updateClock();
 
-// ===== OFFICE =====
-function buildOffice() {
-  const grid = document.getElementById('office-grid');
-  // 8 rows × 12 cols = 96 cells
-  const cells = Array(96).fill(null);
-  
-  // Finn's desk at position row 2, col 3 (index 2*12+3=27)
-  cells[14] = {type:'plant'};
-  cells[20] = {type:'desk', agent: {name:'Finn', emoji:'🐾', active:true, role:'Main Agent'}};
-  cells[37] = {type:'desk', agent: {name:'Scout', emoji:'🔍', active:false, role:'On Demand'}};
-  cells[45] = {type:'desk', agent: {name:'Scribe', emoji:'📋', active:false, role:'On Demand'}};
-  cells[53] = {type:'desk', agent: {name:'Sync', emoji:'⚡', active:false, role:'On Demand'}};
-  cells[83] = {type:'plant'};
-  cells[71] = {type:'plant'};
+// ===== OFFICE (animated) =====
+const FINN_LINES = [
+  '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
+  '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
+  '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
+  '> memory updated','> mission control: live','> analyzing invoice data',
+  '> no missing addresses found','> daily brief scheduled 8AM','> all systems nominal'
+];
+const FINN_THOUGHTS = [
+  '🤔 Checking for new receipts...','💡 Running the morning brief at 8 AM!','📊 Airtable looking clean.',
+  '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
+  '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
+  '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.','💬 Just updated the activity log.'
+];
+const TICKER_MSGS = [
+  '📧 Gmail scanner running — both inboxes active',
+  '🧾 Last receipt logged: Home Decor Group — Peabody',
+  '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
+  '✅ Airtable sync: all material costs up to date',
+  '🤖 Discord bot online — Nikolai\'s Market Lab connected',
+  '📊 Mission control deployed to GitHub Pages',
+  '⚡ n8n: Receipt Scanner workflows active on both inboxes',
+  '🔔 SMS alerts configured → +1 978-429-5580'
+];
 
-  grid.innerHTML = '';
-  for (let i = 0; i < 96; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'desk';
-    const c = cells[i];
-    if (c && c.type === 'plant') {
-      cell.innerHTML = '<span class="plant">🌿</span>';
-    } else if (c && c.type === 'desk') {
-      const a = c.agent;
-      cell.innerHTML = `
-        <span class="agent-sprite">${a.emoji}</span>
-        <div class="desk-surface"><div class="monitor ${a.active ? 'active' : ''}"></div></div>
-        <span class="agent-label">${a.name}</span>
-      `;
-    }
-    grid.appendChild(cell);
-  }
+let finnPos = {x:52, y:120};
+let tickerIdx = 0;
+let thoughtIdx = 0;
+let lineIdx = 0;
+let speechTimer, tickerTimer;
 
-  // Agent cards
-  const agents = [
-    {name:'Finn', emoji:'🐾', role:'Main Agent — Always On', stat:'Primary agent for Premier Painting', active:true},
-    {name:'Scout', emoji:'🔍', role:'Sub-agent — On Demand', stat:'Research & web tasks', active:false},
-    {name:'Scribe', emoji:'📋', role:'Sub-agent — On Demand', stat:'Estimates, SOW, follow-up copy', active:false},
-    {name:'Sync', emoji:'⚡', role:'Sub-agent — On Demand', stat:'n8n automation & Airtable syncs', active:false},
-  ];
-  const cardsEl = document.getElementById('agent-cards');
-  cardsEl.innerHTML = agents.map(a => `
-    <div class="agent-card" style="${!a.active ? 'opacity:.6' : ''}">
-      <div class="agent-avatar">${a.emoji}</div>
-      <div class="agent-info">
-        <div class="agent-name">${a.name} ${a.active ? '<span class="badge badge-green" style="font-size:10px">● active</span>' : '<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div>
-        <div class="agent-role">${a.role}</div>
-        <div class="agent-stat">${a.stat}</div>
-      </div>
-    </div>
-  `).join('');
-}
+function makeDesk(x, y, label, screenClass) {
+  return `
+  <div class="o-desk" style="left:${x}px;top:${y}px;position:absolute">
+    <div class="o-desk-top">
+      <div class="o-monitor">
+        <div class="o-screen ${
 
 // ===== RECEIPTS =====
 async function loadReceipts() {
@@ -611,3 +610,176 @@ loadMemory();
 </script>
 </body>
 </html>
+<script>
+// Patch: finish the animated office buildOffice that was cut off
+(function patchOffice(){
+  const orig = window.buildOffice;
+  window.buildOffice = function() {
+    const floor = document.getElementById('office-floor');
+    if (!floor) return;
+
+    const FINN_LINES = [
+      '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
+      '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
+      '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
+      '> memory updated','> mission control: live','> analyzing invoice data'
+    ];
+    const FINN_THOUGHTS = [
+      '🤔 Checking for new receipts...','💡 Morning brief fires at 8 AM!','📊 Airtable looking clean.',
+      '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
+      '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
+      '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.','💬 Just updated the activity log.'
+    ];
+    const TICKER_MSGS = [
+      '📧 Gmail scanner running — both inboxes active',
+      '🧾 Last receipt: Home Decor Group — Peabody',
+      '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
+      '✅ Airtable sync: material costs up to date',
+      '🤖 Discord bot online — Nikolai\'s Market Lab connected',
+      '📊 Mission control live on GitHub Pages',
+      '⚡ n8n: Receipt Scanner active on both inboxes',
+      '🔔 SMS alerts configured → +1 978-429-5580'
+    ];
+
+    const desks = [
+      {x:60,  y:80,  label:'Finn',   cls:'green', main:true},
+      {x:260, y:70,  label:'Scout',  cls:'blue',  main:false},
+      {x:460, y:80,  label:'Scribe', cls:'blue',  main:false},
+      {x:660, y:70,  label:'Sync',   cls:'blue',  main:false},
+    ];
+
+    const plants = [{x:10,y:10},{x:10,y:240},{x:830,y:20},{x:830,y:280}];
+    const coffee = {x:100, y:108};
+
+    floor.innerHTML = `
+      ${plants.map((p,i)=>`<div class="o-plant" style="left:${p.x}px;top:${p.y}px;animation-delay:${i*1.2}s">${i%2===0?'🌿':'🪴'}</div>`).join('')}
+      <div style="position:absolute;left:${coffee.x}px;top:${coffee.y}px;font-size:18px;z-index:5">☕
+        <div class="steam" style="left:3px;top:-2px;animation-delay:0s"></div>
+        <div class="steam" style="left:8px;top:-2px;animation-delay:.7s"></div>
+      </div>
+      ${desks.map(d=>`
+        <div class="o-desk" style="left:${d.x}px;top:${d.y}px">
+          <div class="o-desk-top">
+            <div class="o-monitor">
+              <div class="o-screen ${d.cls}" id="screen-${d.label}">
+                <div class="term" id="term-${d.label}"></div>
+              </div>
+              <div class="o-stand"></div>
+              <div class="o-base"></div>
+            </div>
+          </div>
+          <div class="o-desk-leg"></div>
+          <div style="font-size:9px;color:var(--muted);margin-top:4px;text-align:center">${d.label}</div>
+        </div>
+      `).join('')}
+      <div class="o-char active" id="finn-char" style="left:${desks[0].x+22}px;top:${desks[0].y-44}px">🐾</div>
+      <div class="o-char sleep" style="left:${desks[1].x+22}px;top:${desks[1].y-44}px">🔍</div>
+      <div class="o-char sleep" style="left:${desks[2].x+22}px;top:${desks[2].y-44}px">📋</div>
+      <div class="o-char sleep" style="left:${desks[3].x+22}px;top:${desks[3].y-44}px">⚡</div>
+      <div class="speech" id="finn-speech" style="left:${desks[0].x-10}px;top:${desks[0].y-92}px"></div>
+      <div class="o-ticker" id="o-ticker">
+        <span class="ticker-badge">● LIVE</span>
+        <span class="ticker-msg" id="ticker-text">${TICKER_MSGS[0]}</span>
+      </div>
+    `;
+
+    // Animate Finn's terminal
+    let lIdx = 0;
+    const finnTerm = document.getElementById('term-Finn');
+    if (finnTerm) {
+      setInterval(()=>{
+        const lines = FINN_LINES;
+        const line = document.createElement('div');
+        line.className = 'term-line';
+        line.textContent = lines[lIdx++ % lines.length];
+        finnTerm.appendChild(line);
+        if (finnTerm.children.length > 10) finnTerm.removeChild(finnTerm.firstChild);
+        finnTerm.scrollTop = finnTerm.scrollHeight;
+        // sparkle occasionally
+        if (Math.random() > .7) {
+          const floor = document.getElementById('office-floor');
+          const finn = document.getElementById('finn-char');
+          if (floor && finn) {
+            const s = document.createElement('div');
+            s.className = 'spark';
+            s.textContent = ['✨','⚡','💡','🎯'][Math.floor(Math.random()*4)];
+            s.style.left = (parseInt(finn.style.left)+10)+'px';
+            s.style.top  = (parseInt(finn.style.top)-10)+'px';
+            floor.appendChild(s);
+            setTimeout(()=>s.remove(), 900);
+          }
+        }
+      }, 1800);
+    }
+
+    // Speech bubble rotation
+    const bubble = document.getElementById('finn-speech');
+    let tIdx = 0;
+    function showThought() {
+      if (!bubble) return;
+      bubble.textContent = FINN_THOUGHTS[tIdx++ % FINN_THOUGHTS.length];
+      bubble.classList.add('show');
+      setTimeout(()=>bubble.classList.remove('show'), 3500);
+    }
+    showThought();
+    setInterval(showThought, 7000);
+
+    // Finn wanders between desks
+    const finnEl = document.getElementById('finn-char');
+    const walkTargets = desks.map((d,i)=>({x:d.x+22, y:d.y-44, idx:i}));
+    let wIdx = 0;
+    setInterval(()=>{
+      if (!finnEl) return;
+      wIdx = (wIdx + 1) % walkTargets.length;
+      const t = walkTargets[wIdx];
+      finnEl.style.left = t.x + 'px';
+      finnEl.style.top  = t.y + 'px';
+      // Light up that desk's monitor briefly
+      desks.forEach(d=>{
+        const s = document.getElementById('screen-'+d.label);
+        if (s) s.className = 'o-screen ' + (d.label === desks[t.idx].label ? 'green' : 'blue');
+      });
+      // spark at destination
+      setTimeout(()=>{
+        const floor = document.getElementById('office-floor');
+        if (!floor) return;
+        const s = document.createElement('div');
+        s.className = 'spark';
+        s.textContent = '✨';
+        s.style.left = t.x+'px'; s.style.top = (t.y-10)+'px';
+        floor.appendChild(s);
+        setTimeout(()=>s.remove(), 900);
+      }, 900);
+    }, 6000);
+
+    // Ticker rotation
+    let tkIdx = 0;
+    setInterval(()=>{
+      tkIdx = (tkIdx+1) % TICKER_MSGS.length;
+      const el = document.getElementById('ticker-text');
+      if (el) { el.style.animation='none'; el.textContent=TICKER_MSGS[tkIdx]; void el.offsetWidth; el.style.animation=''; }
+    }, 5000);
+
+    // Agent cards
+    const agents = [
+      {name:'Finn',   emoji:'🐾', role:'Main Agent — Always On',  stat:'Primary agent for Premier Painting', active:true},
+      {name:'Scout',  emoji:'🔍', role:'Sub-agent — On Demand',   stat:'Research & web tasks', active:false},
+      {name:'Scribe', emoji:'📋', role:'Sub-agent — On Demand',   stat:'Estimates, SOW, follow-up copy', active:false},
+      {name:'Sync',   emoji:'⚡', role:'Sub-agent — On Demand',   stat:'n8n automation & Airtable syncs', active:false},
+    ];
+    const cardsEl = document.getElementById('agent-cards');
+    if (cardsEl) cardsEl.innerHTML = agents.map(a=>`
+      <div class="agent-card" style="${!a.active?'opacity:.65':''}">
+        <div class="agent-avatar">${a.emoji}</div>
+        <div class="agent-info">
+          <div class="agent-name">${a.name} ${a.active?'<span class="badge badge-green" style="font-size:10px">● active</span>':'<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div>
+          <div class="agent-role">${a.role}</div>
+          <div class="agent-stat">${a.stat}</div>
+        </div>
+      </div>`).join('');
+  };
+
+  // Call it
+  window.buildOffice();
+})();
+</script>
