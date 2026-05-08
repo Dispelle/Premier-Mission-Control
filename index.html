@@ -497,8 +497,8 @@ function loadPipeline(){
   var statuses=['Estimate Sent','Follow-Up','Contacted','Estimate Scheduled','Estimate Accepted','Scheduled'];
   // Use Estimates table: Status = Sent/Accepted/Declined, has Estimate Amount + Estimate Notes
   var params='fields%5B%5D=Status&fields%5B%5D=Estimate+Amount&fields%5B%5D=Estimate+Notes&fields%5B%5D=Client&pageSize=200';
-  atFetch(AT_CLIENTS,params,function(recs,err){
-    if(err){document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="5" class="error-row">Error: '+err+'</td></tr>';return}
+  atFetch(AT_ESTIMATES,params,function(recs,err){
+    if(err){document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="3" class="error-row">Error loading estimates</td></tr>';return}
     recs = recs.filter(function(r){return r.fields['Status']!=='Declined'});
     recs.sort(function(a,b){return(b.fields['Estimate Amount']||0)-(a.fields['Estimate Amount']||0)});
     var total=0,sent=0,accepted=0,followups=0;
@@ -520,30 +520,40 @@ function loadJobs(){
   atFetch(AT_JOBS,params,function(recs,err){
     if(err){document.getElementById('jobs-grid').innerHTML='<div class="error-row">Error: '+err+'</div>';return}
     if(!recs.length){document.getElementById('jobs-grid').innerHTML='<div class="loading-row" style="grid-column:1/-1">No active jobs found</div>';return}
-    var needClients=recs.filter(function(r){return!r.fields['Job name']&&r.fields['Client']&&r.fields['Client'].length});
-    if(needClients.length){
-      var clientIds=[...new Set(needClients.flatMap(function(r){return r.fields['Client']||[]}))];
-      var formula='OR('+clientIds.map(function(id){return'RECORD_ID()%3D%22'+id+'%22'}).join(',')+')'
-      atFetch(AT_CLIENTS,'filterByFormula='+formula+'&fields%5B%5D=Name&pageSize=100',function(crecs,cerr){
-        var cmap={};
-        if(crecs)crecs.forEach(function(c){cmap[c.id]=c.fields.Name});
-        renderJobs(recs,cmap);
+    // Collect all unique client IDs
+    var allClientIds=[...new Set(recs.flatMap(function(r){return r.fields['Client']||[]}))];
+    if(allClientIds.length){
+      // Batch fetch in chunks of 100
+      var chunks=[];
+      for(var i=0;i<allClientIds.length;i+=50)chunks.push(allClientIds.slice(i,i+50));
+      var cmap={};
+      var pending=chunks.length;
+      chunks.forEach(function(chunk){
+        var formula='OR('+chunk.map(function(id){return'RECORD_ID()%3D%22'+id+'%22'}).join(',')+')';
+        atFetch(AT_CLIENTS,'filterByFormula='+formula+'&fields%5B%5D=Name&fields%5B%5D=Address&fields%5B%5D=Town&pageSize=100',function(crecs){
+          if(crecs)crecs.forEach(function(c){cmap[c.id]={name:c.fields.Name||'Unknown',addr:c.fields.Address||'',town:c.fields.Town||''};});
+          if(--pending===0)renderJobs(recs,cmap);
+        });
       });
-    } else {renderJobs(recs,{})}
+    } else {renderJobs(recs,{});}
   });
 }
 function renderJobs(recs,cmap){
-  var html=recs.map(function(r){
-    var f=r.fields;
-    var name=f['Job name']||(f['Client']&&f['Client'].length?cmap[f['Client'][0]]||'Unnamed Job':'Unnamed Job');
-    return '<div class="job-card"><h3>'+esc(name)+'</h3><div class="job-meta-row"><strong>Address</strong>'+esc(f['Job Address']||'—')+'</div><div class="job-meta-row"><strong>Type</strong>'+esc(f['Job Type']||'—')+'</div><div class="job-meta-row"><strong>Started</strong>'+fmtDate(f['Start Date'])+'</div></div>';
+  // Group by client — one card per unique client
+  var byClient={};
+  recs.forEach(function(r){
+    var clientId=(r.fields['Client']||[])[0]||'unknown';
+    if(!byClient[clientId]){byClient[clientId]={count:0,info:cmap[clientId]||{name:'Unknown Client',addr:'',town:''}};}
+    byClient[clientId].count++;
+  });
+  var entries=Object.values(byClient).sort(function(a,b){return b.count-a.count;});
+  var html=entries.map(function(e){
+    var loc=[e.info.addr,e.info.town].filter(Boolean).join(', ');
+    return '<div class="job-card"><div class="job-name">'+esc(e.info.name)+'<span class="badge badge-blue" style="margin-left:8px;font-size:11px">'+e.count+' job'+(e.count>1?'s':'')+'</span></div>'+(loc?'<div class="job-meta">📍 '+esc(loc)+'</div>':'')+'</div>';
   }).join('');
-  document.getElementById('jobs-grid').innerHTML=html;
-  jobsLoaded=true;
+  document.getElementById('jobs-grid').innerHTML=html||'<div class="loading-row" style="grid-column:1/-1">No active jobs</div>';
 }
 
-/* RECEIPTS */
-var receiptsLoaded=false;
 function loadReceipts(){
   document.getElementById('receipts-tbody').innerHTML='<tr><td colspan="6" class="loading-row">Loading receipts...</td></tr>';
   var params='fields%5B%5D=Item+Name&fields%5B%5D=Supplier&fields%5B%5D=Job&fields%5B%5D=Date+Purchased&fields%5B%5D=Total+Cost&fields%5B%5D=Notes&fields%5B%5D=Purchased+By&sort%5B0%5D%5Bfield%5D=Date+Purchased&sort%5B0%5D%5Bdirection%5D=desc&pageSize=100';
@@ -643,6 +653,37 @@ function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/<
 
 /* INIT */
 loadOfficeStats();
+
+// ===== FINN LIVE STATUS =====
+var _liveMsg='';
+async function pollFinnStatus(){
+  try{
+    var r=await fetch('https://api.airtable.com/v0/appoqvmZktRnMLCbV/tblowEgB3txMYjqJi/recoGb5jFgG6wS4nv',{headers:{'Authorization':'Bearer '+AIRTABLE_TOKEN}});
+    var d=await r.json();
+    var f=d.fields||{};
+    _liveMsg=(f.Emoji||'🤖')+' '+(f.Action||'Online')+(f.Detail?' — '+f.Detail:'');
+    var bubble=document.getElementById('finn-speech');
+    var finnEl=document.getElementById('finn-char');
+    if(bubble&&finnEl){
+      bubble.textContent=_liveMsg;
+      bubble.style.left=Math.max(8,parseInt(finnEl.style.left||0)-20)+'px';
+      bubble.style.top=(parseInt(finnEl.style.top||80)-70)+'px';
+      bubble.classList.add('show');
+      setTimeout(function(){bubble.classList.remove('show');},4500);
+    }
+    var ticker=document.getElementById('ticker-text');
+    if(ticker){ticker.style.animation='none';ticker.textContent=_liveMsg;void ticker.offsetWidth;ticker.style.animation='';}
+  }catch(e){}
+}
+setInterval(pollFinnStatus,5000);
+setTimeout(pollFinnStatus,1000);
+setInterval(function(){
+  if(_liveMsg){
+    var b=document.getElementById('finn-speech');
+    if(b){b.textContent=_liveMsg;b.classList.add('show');setTimeout(function(){b.classList.remove('show');},4500);}
+  }
+},7000);
+
 </script>
 </body>
 </html>
