@@ -5,723 +5,643 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Premier Painting — Mission Control</title>
 <style>
-  :root {
-    --bg: #0d0f14;
-    --panel: #161b25;
-    --border: #1e2535;
-    --accent: #2563eb;
-    --accent2: #f59e0b;
-    --green: #22c55e;
-    --red: #ef4444;
-    --text: #e2e8f0;
-    --muted: #64748b;
-    --card: #1a2030;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-  /* Header */
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 24px; background: var(--panel); border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .logo { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.5px; }
-  .logo span { color: var(--accent2); }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-  .header-right { display: flex; align-items: center; gap: 16px; }
-  .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; transition: all .15s; }
-  .btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn-accent { background: var(--accent); border-color: var(--accent); color: #fff; }
-  #clock { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
-
-  /* Layout */
-  .layout { display: grid; grid-template-columns: 200px 1fr; min-height: calc(100vh - 53px); }
-
-  /* Sidebar */
-  .sidebar { background: var(--panel); border-right: 1px solid var(--border); padding: 16px 0; }
-  .nav-section { margin-bottom: 8px; }
-  .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); padding: 0 16px; margin-bottom: 4px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 8px 16px; cursor: pointer; font-size: 13px; color: var(--muted); transition: all .15s; border-left: 2px solid transparent; }
-  .nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
-  .nav-item.active { color: #fff; background: rgba(37,99,235,.15); border-left-color: var(--accent); }
-  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
-
-  /* Main */
-  .main { padding: 24px; overflow-y: auto; }
-  .page { display: none; }
-  .page.active { display: block; }
-  .page-title { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-  .page-sub { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-
-  /* Cards / Grid */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-  .card-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 8px; }
-  .card-value { font-size: 28px; font-weight: 700; }
-  .card-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .card-green { border-left: 3px solid var(--green); }
-  .card-blue { border-left: 3px solid var(--accent); }
-  .card-yellow { border-left: 3px solid var(--accent2); }
-  .card-red { border-left: 3px solid var(--red); }
-
-  /* Section */
-  .section { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 16px; }
-  .section-header { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .section-title { font-size: 14px; font-weight: 600; }
-  .section-body { padding: 0; }
-  .table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .table th { padding: 10px 18px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); border-bottom: 1px solid var(--border); }
-  .table td { padding: 12px 18px; border-bottom: 1px solid rgba(30,37,53,.6); vertical-align: middle; }
-  .table tr:last-child td { border-bottom: none; }
-  .table tr:hover td { background: rgba(255,255,255,.02); }
-  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-  .badge-green { background: rgba(34,197,94,.15); color: #4ade80; }
-  .badge-yellow { background: rgba(245,158,11,.15); color: #fbbf24; }
-  .badge-red { background: rgba(239,68,68,.15); color: #f87171; }
-  .badge-blue { background: rgba(37,99,235,.15); color: #60a5fa; }
-  .badge-gray { background: rgba(100,116,139,.15); color: #94a3b8; }
-
-  /* Office */
-  /* ══ OFFICE ══ */
-  .office-container { position:relative; background:#060912; border-radius:12px; overflow:hidden; border:1px solid var(--border); margin-bottom:16px; min-height:380px; }
-  .office-floor { position:relative; width:100%; height:380px;
-    background: radial-gradient(ellipse at 15% 85%, rgba(37,99,235,.07) 0%, transparent 55%),
-                radial-gradient(ellipse at 85% 15%, rgba(245,158,11,.05) 0%, transparent 50%),
-                repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 50px),
-                repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0,rgba(255,255,255,.015) 1px,transparent 1px,transparent 80px); }
-  /* desks */
-  .o-desk { position:absolute; display:flex; flex-direction:column; align-items:center; }
-  .o-desk-top { width:80px; height:42px; background:linear-gradient(160deg,#2e3a50,#1a2232); border-radius:6px 6px 3px 3px; border:1px solid #3a4558; box-shadow:0 4px 0 #0a0d15,0 8px 20px rgba(0,0,0,.5); display:flex; align-items:center; justify-content:center; position:relative; }
-  .o-desk-leg { width:58px; height:5px; background:#151d2e; border-radius:0 0 3px 3px; }
-  /* monitor */
-  .o-monitor { width:42px; height:28px; display:flex; flex-direction:column; align-items:center; }
-  .o-screen { width:36px; height:22px; border-radius:3px; overflow:hidden; position:relative; border:1.5px solid #374151; background:#020407; }
-  .o-screen.green { border-color:#22c55e; box-shadow:0 0 10px rgba(34,197,94,.35),inset 0 0 8px rgba(34,197,94,.06); background:#010f04; }
-  .o-screen.blue  { border-color:#3b82f6; box-shadow:0 0 8px rgba(59,130,246,.25); background:#010610; }
-  .o-stand { width:3px; height:4px; background:#374151; }
-  .o-base  { width:12px; height:2px; background:#374151; border-radius:1px; }
-  .term { position:absolute; inset:2px; font-family:monospace; font-size:3px; color:#22c55e; line-height:1.5; overflow:hidden; }
-  .term-line { white-space:nowrap; }
-  .cursor { display:inline-block; width:2px; height:4px; background:#22c55e; animation:blink .65s step-end infinite; vertical-align:bottom; margin-left:1px; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  /* characters */
-  .o-char { position:absolute; font-size:28px; z-index:10; transition:left .9s cubic-bezier(.34,1.56,.64,1), top .9s cubic-bezier(.34,1.56,.64,1); filter:drop-shadow(0 3px 6px rgba(0,0,0,.7)); pointer-events:none; }
-  .o-char.active { animation:finnBob 2.2s ease-in-out infinite; }
-  .o-char.sleep  { animation:sleepFloat 4s ease-in-out infinite; opacity:.55; }
-  @keyframes finnBob { 0%,100%{transform:translateY(0) rotate(-3deg)} 30%{transform:translateY(-7px) rotate(3deg)} 60%{transform:translateY(-4px) rotate(-1deg)} }
-  @keyframes sleepFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-  /* speech bubble */
-  .speech { position:absolute; z-index:20; background:#1a2640; border:1.5px solid #3b82f6; border-radius:10px; padding:7px 11px; font-size:11.5px; color:#e2e8f0; max-width:170px; line-height:1.45; box-shadow:0 6px 24px rgba(0,0,0,.5); opacity:0; transition:opacity .35s; pointer-events:none; }
-  .speech::after { content:''; position:absolute; bottom:-8px; left:16px; border:8px solid transparent; border-top-color:#3b82f6; border-bottom:none; }
-  .speech.show { opacity:1; }
-  /* ticker */
-  .o-ticker { position:absolute; bottom:0; left:0; right:0; height:32px; background:rgba(6,9,18,.92); border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; padding:0 16px; font-size:11px; overflow:hidden; }
-  .ticker-badge { background:rgba(37,99,235,.2); color:#60a5fa; border-radius:4px; padding:1px 7px; font-size:10px; font-weight:600; white-space:nowrap; }
-  .ticker-msg { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; animation:tickerIn .4s ease; }
-  @keyframes tickerIn { from{opacity:0;transform:translateX(8px)} to{opacity:1;transform:none} }
-  /* sparkle */
-  .spark { position:absolute; pointer-events:none; z-index:30; font-size:14px; animation:sparkPop .8s forwards; }
-  
-  .finn-robot{position:relative;width:34px;height:42px;display:inline-block}
-  .r-antenna{width:3px;height:9px;background:#3b82f6;border-radius:2px;margin:0 auto 1px;position:relative;box-shadow:0 0 6px #3b82f6}
-  .r-antenna::after{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:7px;height:7px;background:#60a5fa;border-radius:50%;box-shadow:0 0 10px #60a5fa;animation:antP 1.4s ease-in-out infinite}
-  @keyframes antP{0%,100%{box-shadow:0 0 6px #60a5fa}50%{box-shadow:0 0 18px #3b82f6,0 0 30px rgba(59,130,246,.5)}}
-  .r-head{width:28px;height:20px;background:linear-gradient(160deg,#1e40af,#1e3a8a);border-radius:5px;border:2px solid #3b82f6;box-shadow:0 0 14px rgba(59,130,246,.8),inset 0 0 8px rgba(59,130,246,.2);margin:0 auto;display:flex;align-items:center;justify-content:center;gap:5px}
-  .r-eye{width:7px;height:7px;background:#60a5fa;border-radius:1px;box-shadow:0 0 8px #3b82f6;animation:eyeG 2s ease-in-out infinite}
-  @keyframes eyeG{0%,100%{opacity:1;background:#60a5fa}50%{opacity:.5;background:#93c5fd}}
-  .r-body{width:22px;height:11px;background:linear-gradient(180deg,#1e3a8a,#172554);border-radius:2px;border:1.5px solid #3b82f6;box-shadow:0 0 8px rgba(59,130,246,.4);margin:2px auto 0;display:flex;align-items:center;justify-content:center;gap:3px}
-  .r-led{width:4px;height:4px;border-radius:50%;animation:ledB 1s step-end infinite}
-  .r-led.g{background:#22c55e;box-shadow:0 0 6px #22c55e}
-  .r-led.b{background:#3b82f6;box-shadow:0 0 6px #3b82f6;animation-delay:.3s}
-  .r-led.y{background:#f59e0b;box-shadow:0 0 6px #f59e0b;animation-delay:.6s}
-  @keyframes ledB{0%,100%{opacity:1}50%{opacity:.2}}
-  @keyframes sparkPop { 0%{opacity:1;transform:scale(0) translateY(0)} 50%{opacity:1;transform:scale(1.3) translateY(-12px)} 100%{opacity:0;transform:scale(.8) translateY(-24px)} }
-  /* plants */
-  .o-plant { position:absolute; font-size:32px; animation:plantSway 5s ease-in-out infinite; transform-origin:bottom center; filter:drop-shadow(0 2px 4px rgba(0,0,0,.4)); }
-  @keyframes plantSway { 0%,100%{transform:rotate(-4deg)} 50%{transform:rotate(4deg)} }
-  /* coffee steam */
-  .steam { position:absolute; width:4px; border-radius:4px; background:rgba(255,255,255,.15); animation:steamRise 2s ease-in infinite; }
-  @keyframes steamRise { 0%{height:0;opacity:.5;transform:translateY(0) scaleX(1)} 100%{height:16px;opacity:0;transform:translateY(-18px) scaleX(1.5)} }
-
-  /* Agent cards */
-  .agent-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-  .agent-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 14px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .15s; }
-  .agent-card:hover { border-color: var(--accent); background: rgba(37,99,235,.06); }
-  .agent-avatar { font-size: 28px; }
-  .agent-info { flex: 1; }
-  .agent-name { font-size: 13px; font-weight: 600; }
-  .agent-role { font-size: 11px; color: var(--muted); }
-  .agent-stat { font-size: 10px; color: var(--muted); margin-top: 4px; }
-
-  /* Cron */
-  .cron-item { display: flex; align-items: center; gap: 12px; padding: 12px 18px; border-bottom: 1px solid rgba(30,37,53,.6); }
-  .cron-item:last-child { border-bottom: none; }
-  .cron-icon { font-size: 18px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(37,99,235,.1); border-radius: 6px; }
-  .cron-info { flex: 1; }
-  .cron-name { font-size: 13px; font-weight: 500; }
-  .cron-schedule { font-size: 11px; color: var(--muted); }
-  .cron-last { font-size: 11px; color: var(--muted); text-align: right; }
-
-  /* Activity */
-  .activity-item { display: flex; gap: 12px; padding: 10px 18px; }
-  .activity-line { display: flex; flex-direction: column; align-items: center; }
-  .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 4px; }
-  .activity-connector { width: 1px; flex: 1; background: var(--border); margin-top: 4px; }
-  .activity-content { flex: 1; padding-bottom: 10px; }
-  .activity-text { font-size: 13px; }
-  .activity-time { font-size: 11px; color: var(--muted); margin-top: 2px; }
-
-  /* Memory */
-  .memory-entry { padding: 14px 18px; border-bottom: 1px solid rgba(30,37,53,.6); }
-  .memory-entry:last-child { border-bottom: none; }
-  .memory-date { font-size: 11px; color: var(--accent2); font-weight: 600; margin-bottom: 4px; }
-  .memory-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-
-  /* Loading */
-  .loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; padding: 20px 18px; }
-  .spinner { width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .empty-state { padding: 32px 18px; text-align: center; color: var(--muted); font-size: 13px; }
-  .tag { display: inline-block; background: rgba(37,99,235,.1); color: #60a5fa; border-radius: 4px; padding: 1px 6px; font-size: 11px; font-weight: 500; }
-
-  @media (max-width: 768px) {
-    .layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
-  }
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#060912;--panel:#0d1117;--border:#1e2535;--accent:#2563eb;--accent2:#3b82f6;--text:#e2e8f0;--muted:#64748b;--green:#22c55e;--yellow:#eab308;--purple:#a855f7;--red:#ef4444;--orange:#f97316}
+body{font-family:system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+a{color:var(--accent2);text-decoration:none}
+#sidebar{width:200px;min-width:200px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.sidebar-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.logo-title{font-size:13px;font-weight:700;color:var(--accent2);line-height:1.3}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:2px}
+#sidebar nav{flex:1;padding:8px 0;overflow-y:auto}
+#sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;color:var(--muted);border-left:3px solid transparent;transition:all .15s;cursor:pointer;user-select:none}
+#sidebar nav a:hover{color:var(--text);background:rgba(37,99,235,.08)}
+#sidebar nav a.active{color:var(--text);border-left-color:var(--accent);background:rgba(37,99,235,.12)}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);font-size:10px;color:var(--muted)}
+.status-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;margin-right:5px;animation:pulse-dot 2s infinite;vertical-align:middle}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.4}}
+#main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+#topbar{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--panel);flex-shrink:0}
+#topbar h1{font-size:16px;font-weight:600}
+#topbar-time{font-size:12px;color:var(--muted)}
+.page{display:none;padding:20px}
+.page.active{display:block}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.stat-card .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.stat-card .value{font-size:22px;font-weight:700;color:var(--text)}
+.stat-card .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.stat-card.accent{border-color:var(--accent)}
+.quick-links{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+.quick-link{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--text);transition:all .15s;display:flex;align-items:center;gap:6px}
+.quick-link:hover{border-color:var(--accent);background:rgba(37,99,235,.1);color:var(--accent2)}
+#office-floor{background:linear-gradient(180deg,#080d1e 0%,#040810 100%);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:relative;height:280px;margin-bottom:20px}
+.floor-grid{position:absolute;bottom:0;left:0;right:0;height:60px;background:repeating-linear-gradient(90deg,rgba(37,99,235,.07) 0,rgba(37,99,235,.07) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(0deg,rgba(37,99,235,.07) 0,rgba(37,99,235,.07) 1px,transparent 1px,transparent 20px)}
+.ceil-light{position:absolute;top:0;width:2px;height:40px;background:linear-gradient(180deg,rgba(59,130,246,.6),transparent)}
+.ceil-light::before{content:"";position:absolute;top:0;left:-12px;right:-12px;height:3px;background:rgba(59,130,246,.3);border-radius:2px;box-shadow:0 0 20px rgba(59,130,246,.5)}
+.desk{position:absolute;bottom:50px;display:flex;flex-direction:column;align-items:center;width:90px}
+.desk-surface{width:84px;height:30px;background:linear-gradient(180deg,#1a2235,#111827);border:1px solid #2d3a52;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center;gap:6px}
+.desk-legs{width:74px;height:13px;border-left:3px solid #2d3a52;border-right:3px solid #2d3a52;border-bottom:3px solid #2d3a52;border-radius:0 0 3px 3px}
+.desk-name{font-size:8px;color:var(--muted);margin-top:5px;letter-spacing:.08em;text-transform:uppercase}
+.monitor{width:32px;height:21px;background:#030810;border:2px solid #2563eb;border-radius:3px;overflow:hidden;flex-shrink:0;position:relative}
+.monitor::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:7px;height:4px;background:#1e2535;border-radius:0 0 2px 2px}
+.mon-scroll{padding:2px;animation:mscroll 7s linear infinite}
+.mon-line{font-size:3.8px;color:#3b82f6;display:block;line-height:1.6}
+.mon-line.g{color:#22c55e}.mon-line.p{color:#a855f7}
+@keyframes mscroll{0%{transform:translateY(0)}100%{transform:translateY(-55%)}}
+.keyboard{width:22px;height:6px;background:#1e293b;border:1px solid #334155;border-radius:2px;flex-shrink:0}
+.coffee-wrap{display:flex;flex-direction:column;align-items:center;position:absolute;bottom:50px}
+.coffee-steam{display:flex;gap:2px;height:10px;align-items:flex-end}
+.sp{width:2px;border-radius:1px;background:rgba(255,255,255,.2);animation:sp-up 2s ease-in-out infinite}
+.sp1{height:7px}.sp2{height:9px;animation-delay:.4s}.sp3{height:6px;animation-delay:.8s}
+@keyframes sp-up{0%,100%{opacity:0;transform:translateY(0)}50%{opacity:.7;transform:translateY(-5px)}}
+.coffee-cup{width:12px;height:12px;background:#3d2b1f;border:1px solid #5c3a22;border-radius:0 0 3px 3px;position:relative}
+.coffee-cup::after{content:"";position:absolute;right:-4px;top:2px;width:4px;height:6px;border:2px solid #5c3a22;border-left:none;border-radius:0 4px 4px 0}
+.plant{position:absolute;bottom:50px;display:flex;flex-direction:column;align-items:center}
+.plant-pot{width:15px;height:11px;background:#7c3d11;clip-path:polygon(10% 0,90% 0,100% 100%,0 100%)}
+.plant-leaves{position:relative;height:26px;width:30px}
+.leaf{width:13px;height:20px;border-radius:50% 0 50% 0;position:absolute;transform-origin:bottom center;animation:sway 3.5s ease-in-out infinite}
+.lf1{background:#16a34a;left:0;transform:rotate(-22deg)}
+.lf2{background:#15803d;right:0;border-radius:0 50% 0 50%;transform:rotate(22deg);animation-delay:.7s}
+.lf3{background:#166534;left:8px;width:10px;height:16px;animation-delay:1.4s}
+@keyframes sway{0%,100%{rotate:0deg}50%{rotate:7deg}}
+.sparkle{position:absolute;width:3px;height:3px;background:#fbbf24;border-radius:50%;animation:sp-pop 2.5s ease-in-out infinite}
+@keyframes sp-pop{0%,100%{opacity:0;transform:scale(0)}50%{opacity:1;transform:scale(1)}}
+#robot-wrap{position:absolute;bottom:50px;z-index:20;transition:left 1.4s cubic-bezier(.4,0,.2,1)}
+.finn-robot{position:relative;width:34px;height:42px;display:inline-block;display:flex;flex-direction:column;align-items:center}
+.r-antenna{width:3px;height:9px;background:#3b82f6;border-radius:2px;margin:0 auto 1px;position:relative;animation:ant-pulse 1.5s ease-in-out infinite}
+.r-antenna::before{content:"";position:absolute;top:-5px;left:50%;transform:translateX(-50%);width:7px;height:7px;background:#60a5fa;border-radius:50%;box-shadow:0 0 10px #3b82f6,0 0 20px rgba(59,130,246,.5)}
+@keyframes ant-pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.r-head{width:28px;height:20px;background:linear-gradient(135deg,#1d4ed8,#1e40af);border:2px solid #3b82f6;border-radius:5px;position:relative;box-shadow:0 0 14px rgba(59,130,246,.7),inset 0 1px 0 rgba(255,255,255,.1)}
+.r-eye{width:6px;height:5px;background:#93c5fd;border-radius:2px;position:absolute;top:5px;box-shadow:0 0 6px #3b82f6;animation:blink 5s ease-in-out infinite}
+.r-eye.lf{left:4px}.r-eye.rf{right:4px}
+@keyframes blink{0%,90%,100%{transform:scaleY(1)}93%,97%{transform:scaleY(.15)}}
+.r-mouth{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:10px;height:3px;border-bottom:2px solid #93c5fd;border-radius:0 0 4px 4px}
+.r-body{width:30px;height:18px;background:linear-gradient(180deg,#1e3a5f,#172a4a);border:2px solid #2563eb;border-radius:4px;display:flex;align-items:center;justify-content:center;gap:3px;box-shadow:0 0 8px rgba(37,99,235,.4);margin-top:2px}
+.r-led{width:5px;height:5px;border-radius:50%;animation:led-rgb 3s linear infinite}
+.r-led:nth-child(1){background:#ef4444;box-shadow:0 0 6px #ef4444}
+.r-led:nth-child(2){background:#22c55e;box-shadow:0 0 6px #22c55e;animation-delay:.6s}
+.r-led:nth-child(3){background:#3b82f6;box-shadow:0 0 6px #3b82f6;animation-delay:1.2s}
+@keyframes led-rgb{0%,100%{opacity:1}50%{opacity:.25}}
+.r-legs{display:flex;gap:4px;margin-top:2px}
+.r-leg{width:8px;height:10px;background:#1e3a5f;border:1px solid #2563eb;border-radius:0 0 2px 2px}
+.r-leg.lf{animation:walk-l .6s ease-in-out infinite}
+.r-leg.rf{animation:walk-r .6s ease-in-out infinite}
+@keyframes walk-l{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-3px) rotate(8deg)}}
+@keyframes walk-r{0%,100%{transform:translateY(0) rotate(8deg)}50%{transform:translateY(-3px) rotate(-8deg)}}
+#speech-bubble{position:absolute;bottom:48px;left:-20px;background:#0d1117;border:1px solid var(--accent);border-radius:8px;padding:5px 10px;font-size:10px;color:var(--accent2);opacity:0;transition:opacity .4s;z-index:30;width:148px;line-height:1.5;pointer-events:none}
+#speech-bubble.show{opacity:1}
+#speech-bubble::after{content:"";position:absolute;bottom:-6px;left:26px;width:10px;height:6px;background:#0d1117;border-left:1px solid var(--accent);border-bottom:1px solid var(--accent);clip-path:polygon(0 0,100% 0,50% 100%)}
+#office-ticker{position:absolute;bottom:0;left:0;right:0;background:rgba(37,99,235,.1);border-top:1px solid rgba(37,99,235,.22);height:22px;overflow:hidden;display:flex;align-items:center}
+#ticker-track{display:flex;gap:80px;animation:tick 30s linear infinite;white-space:nowrap;font-size:10px;color:var(--accent2);padding-left:100%}
+@keyframes tick{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.agents-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.agent-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px}
+.agent-card.active-agent{border-color:var(--accent)}
+.agent-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.agent-role{font-size:11px;color:var(--muted);margin-bottom:8px}
+.agent-status{display:inline-flex;align-items:center;gap:5px;font-size:11px}
+.s-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.s-dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.s-dot.idle{background:var(--muted)}
+.pipeline-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.section-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.data-wrap{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:auto}
+.data-wrap table{width:100%;border-collapse:collapse;min-width:500px}
+.data-wrap th{padding:10px 14px;font-size:11px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.data-wrap td{padding:10px 14px;font-size:12px;border-bottom:1px solid rgba(30,37,53,.6)}
+.data-wrap tr:last-child td{border-bottom:none}
+.data-wrap tr:hover td{background:rgba(37,99,235,.04)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.b-blue{background:rgba(37,99,235,.2);color:#60a5fa}
+.b-yellow{background:rgba(234,179,8,.2);color:#fde047}
+.b-gray{background:rgba(100,116,139,.2);color:#94a3b8}
+.b-purple{background:rgba(168,85,247,.2);color:#d8b4fe}
+.b-green{background:rgba(34,197,94,.2);color:#86efac}
+.b-orange{background:rgba(249,115,22,.2);color:#fdba74}
+.jobs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.job-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.job-card h3{font-size:13px;font-weight:600;margin-bottom:8px}
+.job-meta-row{font-size:11px;color:var(--muted);display:flex;gap:6px;margin-bottom:4px;align-items:flex-start}
+.job-meta-row strong{color:var(--text);min-width:54px;flex-shrink:0}
+.receipts-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.tasks-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.task-panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.task-panel h3{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--accent2)}
+.task-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(30,37,53,.6);font-size:12px}
+.task-item:last-child{border-bottom:none}
+.task-icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.task-icon.ok{background:rgba(34,197,94,.15);color:var(--green)}
+.task-icon.warn{background:rgba(234,179,8,.15);color:var(--yellow)}
+.task-icon.off{background:rgba(100,116,139,.15);color:var(--muted)}
+.task-name{font-weight:500}
+.task-desc{font-size:10px;color:var(--muted);margin-top:2px}
+.timeline{display:flex;flex-direction:column;padding-left:20px;border-left:2px solid var(--border)}
+.tl-item{position:relative;padding:0 0 18px 20px}
+.tl-item::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid var(--accent);background:var(--bg)}
+.tl-item:last-child{padding-bottom:0}
+.tl-date{font-size:10px;color:var(--muted);margin-bottom:3px}
+.tl-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.tl-desc{font-size:12px;color:var(--muted)}
+.memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.memory-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px}
+.memory-card h3{font-size:12px;font-weight:600;color:var(--accent2);margin-bottom:10px}
+.memory-card ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+.memory-card ul li{font-size:12px;color:var(--muted);padding-left:12px;position:relative;line-height:1.4}
+.memory-card ul li::before{content:"·";position:absolute;left:0;color:var(--accent2)}
+.memory-card ul li strong{color:var(--text)}
+.loading-row{text-align:center;padding:30px;color:var(--muted);font-size:12px}
+.error-row{text-align:center;padding:20px;color:var(--red);font-size:12px}
+.refresh-btn{background:rgba(37,99,235,.15);border:1px solid rgba(37,99,235,.3);color:var(--accent2);border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;transition:all .15s}
+.refresh-btn:hover{background:rgba(37,99,235,.25)}
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.page-header h2{font-size:15px;font-weight:600}
+@media(max-width:900px){#sidebar{width:52px;min-width:52px}.sidebar-logo,.sidebar-footer{display:none}#sidebar nav a span:not(.nav-icon){display:none}#sidebar nav a{justify-content:center;padding:12px}.stats-row,.agents-row{grid-template-columns:repeat(2,1fr)}.jobs-grid,.memory-grid{grid-template-columns:1fr 1fr}.tasks-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}.jobs-grid,.memory-grid{grid-template-columns:1fr}.pipeline-summary{grid-template-columns:1fr 1fr}.receipts-summary{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-
-<div class="header">
-  <div class="header-left">
-    <div class="status-dot"></div>
-    <div class="logo">Premier <span>Painting</span> — Mission Control</div>
+<div id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-title">🎨 Premier Painting</div>
+    <div class="logo-sub">Mission Control v2</div>
   </div>
-  <div class="header-right">
-    <span id="clock"></span>
-    <button class="btn btn-accent" onclick="refreshAll()">⟳ Refresh</button>
-  </div>
+  <nav>
+    <a class="active" onclick="showPage('office')"><span class="nav-icon">🏢</span><span>Office</span></a>
+    <a onclick="showPage('pipeline')"><span class="nav-icon">📊</span><span>Pipeline</span></a>
+    <a onclick="showPage('jobs')"><span class="nav-icon">🏠</span><span>Jobs</span></a>
+    <a onclick="showPage('receipts')"><span class="nav-icon">🧾</span><span>Receipts</span></a>
+    <a onclick="showPage('tasks')"><span class="nav-icon">⚡</span><span>Tasks</span></a>
+    <a onclick="showPage('activity')"><span class="nav-icon">📡</span><span>Activity</span></a>
+    <a onclick="showPage('memory')"><span class="nav-icon">🧠</span><span>Memory</span></a>
+  </nav>
+  <div class="sidebar-footer"><span class="status-dot"></span>Finn active</div>
 </div>
+<div id="main">
+  <div id="topbar">
+    <h1 id="page-title">🏢 Office</h1>
+    <div id="topbar-time"></div>
+  </div>
 
-<div class="layout">
-  <div class="sidebar">
-    <div class="nav-section">
-      <div class="nav-label">Overview</div>
-      <div class="nav-item active" onclick="showPage('office')" id="nav-office">
-        <span class="nav-icon">🏢</span> Office
-      </div>
-      <div class="nav-item" onclick="showPage('tasks')" id="nav-tasks">
-        <span class="nav-icon">⚡</span> Tasks
-      </div>
-      <div class="nav-item" onclick="showPage('activity')" id="nav-activity">
-        <span class="nav-icon">📡</span> Activity
-      </div>
+  <!-- OFFICE PAGE -->
+  <div id="page-office" class="page active">
+    <div class="stats-row">
+      <div class="stat-card accent"><div class="label">Pipeline Total</div><div class="value" id="stat-pipeline">—</div><div class="sub">active estimates</div></div>
+      <div class="stat-card"><div class="label">Active Jobs</div><div class="value" id="stat-jobs">—</div><div class="sub">in progress</div></div>
+      <div class="stat-card"><div class="label">This Month Materials</div><div class="value" id="stat-materials">—</div><div class="sub">material costs</div></div>
+      <div class="stat-card"><div class="label">Open Estimates</div><div class="value" id="stat-estimates">—</div><div class="sub">awaiting response</div></div>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">Business</div>
-      <div class="nav-item" onclick="showPage('receipts')" id="nav-receipts">
-        <span class="nav-icon">🧾</span> Receipts
-      </div>
-      <div class="nav-item" onclick="showPage('jobs')" id="nav-jobs">
-        <span class="nav-icon">🏠</span> Jobs
-      </div>
+    <div class="quick-links">
+      <a class="quick-link" href="https://app.paintscout.com" target="_blank">🎨 PaintScout</a>
+      <a class="quick-link" href="https://app.gohighlevel.com" target="_blank">📈 GoHighLevel</a>
+      <a class="quick-link" href="https://premierpainting.app.n8n.cloud" target="_blank">⚡ n8n</a>
+      <a class="quick-link" href="https://ads.google.com" target="_blank">🔍 Google Ads</a>
+      <a class="quick-link" href="https://business.google.com" target="_blank">📍 Google Business</a>
     </div>
-    <div class="nav-section">
-      <div class="nav-label">Agent</div>
-      <div class="nav-item" onclick="showPage('memory')" id="nav-memory">
-        <span class="nav-icon">🧠</span> Memory
+    <div id="office-floor">
+      <div class="ceil-light" style="left:18%"></div>
+      <div class="ceil-light" style="left:38%"></div>
+      <div class="ceil-light" style="left:58%"></div>
+      <div class="ceil-light" style="left:78%"></div>
+      <div class="desk" style="left:5%" id="desk-finn">
+        <div class="desk-surface">
+          <div class="monitor"><div class="mon-scroll"><span class="mon-line">init Finn...</span><span class="mon-line g">✓ leads ok</span><span class="mon-line">scanning...</span><span class="mon-line p">msg recv</span><span class="mon-line">reply ok</span><span class="mon-line g">✓ done</span><span class="mon-line">AT fetch</span><span class="mon-line p">pipeline $</span></div></div>
+          <div class="keyboard"></div>
+        </div>
+        <div class="desk-legs"></div><div class="desk-name">Finn</div>
       </div>
-      <div class="nav-item" onclick="showPage('agents')" id="nav-agents">
-        <span class="nav-icon">🤖</span> Agents
+      <div class="desk" style="left:30%" id="desk-scout">
+        <div class="desk-surface">
+          <div class="monitor"><div class="mon-scroll"><span class="mon-line">Scout v1.2</span><span class="mon-line g">✓ GBP ok</span><span class="mon-line">crawling...</span><span class="mon-line p">ranked #3</span><span class="mon-line">SEO scan</span><span class="mon-line g">✓ report</span><span class="mon-line">ads data</span><span class="mon-line">CPC $2.40</span></div></div>
+          <div class="keyboard"></div>
+        </div>
+        <div class="desk-legs"></div><div class="desk-name">Scout</div>
+      </div>
+      <div class="desk" style="left:56%" id="desk-scribe">
+        <div class="desk-surface">
+          <div class="monitor"><div class="mon-scroll"><span class="mon-line">Scribe v1</span><span class="mon-line g">✓ email ok</span><span class="mon-line">drafting...</span><span class="mon-line p">follow-up</span><span class="mon-line">invoice</span><span class="mon-line g">✓ sent</span><span class="mon-line">scope WR</span><span class="mon-line">proposal</span></div></div>
+          <div class="keyboard"></div>
+        </div>
+        <div class="desk-legs"></div><div class="desk-name">Scribe</div>
+      </div>
+      <div class="desk" style="left:79%" id="desk-sync">
+        <div class="desk-surface">
+          <div class="monitor"><div class="mon-scroll"><span class="mon-line">Sync v1</span><span class="mon-line g">✓ n8n live</span><span class="mon-line">webhook...</span><span class="mon-line p">GHL sync</span><span class="mon-line">PS→GHL</span><span class="mon-line g">✓ routed</span><span class="mon-line">Retell AI</span><span class="mon-line">call log</span></div></div>
+          <div class="keyboard"></div>
+        </div>
+        <div class="desk-legs"></div><div class="desk-name">Sync</div>
+      </div>
+      <div class="coffee-wrap" style="left:22%"><div class="coffee-steam"><div class="sp sp1"></div><div class="sp sp2"></div><div class="sp sp3"></div></div><div class="coffee-cup"></div></div>
+      <div class="plant" style="left:1%"><div class="plant-leaves"><div class="leaf lf1"></div><div class="leaf lf2"></div><div class="leaf lf3"></div></div><div class="plant-pot"></div></div>
+      <div class="plant" style="right:2%"><div class="plant-leaves"><div class="leaf lf1"></div><div class="leaf lf2"></div><div class="leaf lf3"></div></div><div class="plant-pot"></div></div>
+      <div class="sparkle" style="left:48%;top:28%;animation-delay:0s"></div>
+      <div class="sparkle" style="left:68%;top:38%;animation-delay:.9s"></div>
+      <div class="sparkle" style="left:33%;top:22%;animation-delay:1.8s"></div>
+      <div class="sparkle" style="left:14%;top:32%;animation-delay:.4s"></div>
+      <div class="sparkle" style="left:84%;top:26%;animation-delay:1.3s"></div>
+      <div id="robot-wrap" style="left:5%">
+        <div class="finn-robot">
+          <div class="r-antenna"></div>
+          <div class="r-head"><div class="r-eye lf"></div><div class="r-eye rf"></div><div class="r-mouth"></div></div>
+          <div class="r-body"><div class="r-led"></div><div class="r-led"></div><div class="r-led"></div></div>
+          <div class="r-legs"><div class="r-leg lf"></div><div class="r-leg rf"></div></div>
+        </div>
+        <div id="speech-bubble"></div>
+      </div>
+      <div class="floor-grid"></div>
+      <div id="office-ticker"><div id="ticker-track">
+        <span>📞 Lead in — Topsfield exterior repaint</span>
+        <span>✅ Accepted — Hamilton interior $4,800</span>
+        <span>🎨 Job started — Danvers deck staining</span>
+        <span>📧 Follow-up sent — Boxford inquiry</span>
+        <span>⭐ New 5-star Google review</span>
+        <span>💰 Invoice paid — Wenham $3,200</span>
+        <span>🔧 Material logged — BM Regal Select</span>
+        <span>📍 GBP impression spike — North Shore</span>
+        <span>📞 Lead in — Topsfield exterior repaint</span>
+        <span>✅ Accepted — Hamilton interior $4,800</span>
+        <span>🎨 Job started — Danvers deck staining</span>
+        <span>📧 Follow-up sent — Boxford inquiry</span>
+        <span>⭐ New 5-star Google review</span>
+        <span>💰 Invoice paid — Wenham $3,200</span>
+        <span>🔧 Material logged — BM Regal Select</span>
+        <span>📍 GBP impression spike — North Shore</span>
+      </div></div>
+    </div>
+    <div class="agents-row">
+      <div class="agent-card active-agent"><div class="agent-name">🐾 Finn</div><div class="agent-role">Main AI — strategy, estimates, comms</div><div class="agent-status"><div class="s-dot on"></div>Active</div></div>
+      <div class="agent-card"><div class="agent-name">🔭 Scout</div><div class="agent-role">SEO, GBP, Ads intelligence</div><div class="agent-status"><div class="s-dot idle"></div>Standby</div></div>
+      <div class="agent-card"><div class="agent-name">✍️ Scribe</div><div class="agent-role">Proposals, emails, copy</div><div class="agent-status"><div class="s-dot idle"></div>Standby</div></div>
+      <div class="agent-card"><div class="agent-name">🔄 Sync</div><div class="agent-role">GHL + n8n + PaintScout automation</div><div class="agent-status"><div class="s-dot idle"></div>Standby</div></div>
+    </div>
+  </div>
+
+  <!-- PIPELINE PAGE -->
+  <div id="page-pipeline" class="page">
+    <div class="page-header"><h2>📊 Pipeline</h2><button class="refresh-btn" onclick="loadPipeline()">↻ Refresh</button></div>
+    <div class="pipeline-summary">
+      <div class="stat-card accent"><div class="label">Total Pipeline</div><div class="value" id="pl-total">—</div><div class="sub">estimated value</div></div>
+      <div class="stat-card"><div class="label">Estimates Sent</div><div class="value" id="pl-sent">—</div><div class="sub">awaiting decision</div></div>
+      <div class="stat-card"><div class="label">Accepted</div><div class="value" id="pl-accepted">—</div><div class="sub">ready to schedule</div></div>
+    </div>
+    <div class="data-wrap">
+      <table><thead><tr><th>Client</th><th>Town</th><th>Status</th><th>Estimate</th><th>Date Added</th></tr></thead>
+      <tbody id="pipeline-tbody"><tr><td colspan="5" class="loading-row">Loading pipeline...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- JOBS PAGE -->
+  <div id="page-jobs" class="page">
+    <div class="page-header"><h2>🏠 Active Jobs</h2><button class="refresh-btn" onclick="loadJobs()">↻ Refresh</button></div>
+    <div id="jobs-grid" class="jobs-grid"><div class="loading-row" style="grid-column:1/-1">Loading jobs...</div></div>
+  </div>
+
+  <!-- RECEIPTS PAGE -->
+  <div id="page-receipts" class="page">
+    <div class="page-header"><h2>🧾 Material Receipts</h2><button class="refresh-btn" onclick="loadReceipts()">↻ Refresh</button></div>
+    <div class="receipts-summary">
+      <div class="stat-card"><div class="label">Today's Spend</div><div class="value" id="r-today">—</div><div class="sub">materials today</div></div>
+      <div class="stat-card accent"><div class="label">This Month</div><div class="value" id="r-month">—</div><div class="sub">month-to-date</div></div>
+      <div class="stat-card"><div class="label">Auto-Logged</div><div class="value" id="r-auto">—</div><div class="sub">via AI scanner</div></div>
+      <div class="stat-card"><div class="label">Total Records</div><div class="value" id="r-total">—</div><div class="sub">all receipts</div></div>
+    </div>
+    <div class="data-wrap">
+      <table><thead><tr><th>Item</th><th>Supplier</th><th>Job</th><th>Date</th><th>Cost</th><th>Source</th></tr></thead>
+      <tbody id="receipts-tbody"><tr><td colspan="6" class="loading-row">Loading receipts...</td></tr></tbody></table>
+    </div>
+  </div>
+
+  <!-- TASKS PAGE -->
+  <div id="page-tasks" class="page">
+    <div class="page-header"><h2>⚡ Tasks &amp; Workflows</h2></div>
+    <div class="tasks-grid">
+      <div class="task-panel">
+        <h3>Active Workflows</h3>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Lead → GHL Contact</div><div class="task-desc">Auto-creates contact on new form submission</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Receipt Scanner (Gmail 1)</div><div class="task-desc">Scans billing@premier… for supplier receipts</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Receipt Scanner (Gmail 2)</div><div class="task-desc">Scans info@premier… for supplier receipts</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">PaintScout → GHL Sync</div><div class="task-desc">Syncs estimate status changes to GHL pipeline</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Retell AI Call Logger</div><div class="task-desc">Logs inbound calls + transcripts to GHL</div></div></div>
+        <div class="task-item"><div class="task-icon warn">!</div><div class="task-detail"><div class="task-name">Follow-Up Sequence</div><div class="task-desc">3-touch email/SMS after estimate sent — review pending</div></div></div>
+      </div>
+      <div class="task-panel">
+        <h3>Scanner Status</h3>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">billing@premierpainting.com</div><div class="task-desc">Watching inbox · Last scan: active</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">info@premierpainting.com</div><div class="task-desc">Watching inbox · Last scan: active</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">n8n Cloud Instance</div><div class="task-desc">premierpainting.app.n8n.cloud — running</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Airtable Base</div><div class="task-desc">appoqvmZktRnMLCbV — connected</div></div></div>
+        <div class="task-item"><div class="task-icon ok">✓</div><div class="task-detail"><div class="task-name">Google Ads Campaigns</div><div class="task-desc">Search campaigns active · North Shore targeting</div></div></div>
+        <div class="task-item"><div class="task-icon warn">!</div><div class="task-detail"><div class="task-name">EDDM Campaign</div><div class="task-desc">PostcardMania — next drop pending approval</div></div></div>
       </div>
     </div>
   </div>
 
-  <div class="main">
-
-    <!-- OFFICE PAGE -->
-    <div class="page active" id="page-office">
-      <div class="page-title">Office</div>
-      <div class="page-sub">Live view of your AI team</div>
-
-      <div class="office-container">
-        <div class="office-floor" id="office-floor"><!-- JS --></div>
-      </div>
-      <div class="agent-cards" id="agent-cards"></div>
+  <!-- ACTIVITY PAGE -->
+  <div id="page-activity" class="page">
+    <div class="page-header"><h2>📡 Recent Activity</h2></div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-date">May 2025</div><div class="tl-title">Mission Control v2 launched</div><div class="tl-desc">Full rebuild with Pipeline, Jobs, and live Airtable sync</div></div>
+      <div class="tl-item"><div class="tl-date">Apr 2025</div><div class="tl-title">Receipt Scanner deployed</div><div class="tl-desc">Auto-logs material purchases from Gmail to Airtable via n8n</div></div>
+      <div class="tl-item"><div class="tl-date">Apr 2025</div><div class="tl-title">Retell AI phone system activated</div><div class="tl-desc">AI answers inbound calls, logs transcripts to GoHighLevel</div></div>
+      <div class="tl-item"><div class="tl-date">Mar 2025</div><div class="tl-title">PaintScout ↔ GHL integration</div><div class="tl-desc">Estimate status changes now sync to CRM pipeline automatically</div></div>
+      <div class="tl-item"><div class="tl-date">Mar 2025</div><div class="tl-title">Google Ads restructured</div><div class="tl-desc">Campaigns rebuilt for North Shore MA targeting, new ad copy deployed</div></div>
+      <div class="tl-item"><div class="tl-date">Feb 2025</div><div class="tl-title">Finn AI assistant onboarded</div><div class="tl-desc">OpenClaw instance configured, business context loaded, tools connected</div></div>
+      <div class="tl-item"><div class="tl-date">Jan 2025</div><div class="tl-title">Airtable CRM foundation built</div><div class="tl-desc">Clients, Jobs, Material Costs bases configured and populated</div></div>
     </div>
-
-    <!-- TASKS PAGE -->
-    <div class="page" id="page-tasks">
-      <div class="page-title">Scheduled Tasks</div>
-      <div class="page-sub">Active cron jobs and automations</div>
-
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">🔄 Running Automations</span>
-          <span class="badge badge-green">● Live</span>
-        </div>
-        <div class="section-body" id="cron-list">
-          <div class="loading"><div class="spinner"></div> Loading cron jobs...</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">📬 Gmail Scanner Status</span>
-        </div>
-        <div class="section-body" id="scanner-status">
-          <div class="loading"><div class="spinner"></div> Checking...</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RECEIPTS PAGE -->
-    <div class="page" id="page-receipts">
-      <div class="page-title">Material Receipts</div>
-      <div class="page-sub">Auto-logged from Gmail → Airtable</div>
-
-      <div class="grid-4" id="receipt-stats"></div>
-
-      <div class="section">
-        <div class="section-header">
-          <span class="section-title">Recent Purchases</span>
-        </div>
-        <div class="section-body">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Item</th>
-                <th>Supplier</th>
-                <th>Job</th>
-                <th>Date</th>
-                <th>Cost</th>
-                <th>Source</th>
-              </tr>
-            </thead>
-            <tbody id="receipts-tbody">
-              <tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading receipts...</div></td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- JOBS PAGE -->
-    <div class="page" id="page-jobs">
-      <div class="page-title">Active Jobs</div>
-      <div class="page-sub">Current projects at Premier Painting</div>
-      <div class="section">
-        <div class="section-header"><span class="section-title">Job Board</span></div>
-        <div class="section-body" id="jobs-body">
-          <div class="empty-state">📋 Job board coming soon — connect PaintScout to auto-populate</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ACTIVITY PAGE -->
-    <div class="page" id="page-activity">
-      <div class="page-title">Activity Log</div>
-      <div class="page-sub">Recent actions by Finn</div>
-      <div class="section">
-        <div class="section-header"><span class="section-title">Today's Activity</span></div>
-        <div class="section-body" id="activity-body">
-          <div id="activity-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MEMORY PAGE -->
-    <div class="page" id="page-memory">
-      <div class="page-title">Memory</div>
-      <div class="page-sub">What Finn remembers</div>
-      <div class="section">
-        <div class="section-header"><span class="section-title">Stored Context</span></div>
-        <div class="section-body" id="memory-body">
-          <div id="memory-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- AGENTS PAGE -->
-    <div class="page" id="page-agents">
-      <div class="page-title">Agents</div>
-      <div class="page-sub">Your AI team at Premier Painting</div>
-      <div class="agent-cards">
-        <div class="agent-card">
-          <div class="agent-avatar">🐾</div>
-          <div class="agent-info">
-            <div class="agent-name">Finn</div>
-            <div class="agent-role">Main Agent — Always On</div>
-            <div class="agent-stat">Handles everything: receipts, estimates, strategy, automation</div>
-          </div>
-        </div>
-        <div class="agent-card" style="opacity:.6">
-          <div class="agent-avatar">🔍</div>
-          <div class="agent-info">
-            <div class="agent-name">Scout</div>
-            <div class="agent-role">Sub-agent — On Demand</div>
-            <div class="agent-stat">Spins up for research & web tasks</div>
-          </div>
-        </div>
-        <div class="agent-card" style="opacity:.6">
-          <div class="agent-avatar">📋</div>
-          <div class="agent-info">
-            <div class="agent-name">Scribe</div>
-            <div class="agent-role">Sub-agent — On Demand</div>
-            <div class="agent-stat">Estimate writing, SOW drafts, follow-up copy</div>
-          </div>
-        </div>
-        <div class="agent-card" style="opacity:.6">
-          <div class="agent-avatar">⚡</div>
-          <div class="agent-info">
-            <div class="agent-name">Sync</div>
-            <div class="agent-role">Sub-agent — On Demand</div>
-            <div class="agent-stat">n8n automation & Airtable syncs</div>
-          </div>
-        </div>
-      </div>
-      <div style="margin-top: 16px; padding: 14px 18px; background: var(--card); border: 1px solid var(--border); border-radius: 10px;">
-        <div style="font-size: 13px; color: var(--muted); line-height: 1.6;">
-          💡 <strong style="color: var(--text)">How sub-agents work:</strong> Scout, Scribe, and Sync aren't paid separate agents — they're temporary workers Finn spins up when needed. Same capabilities, no extra cost. When a task is done, they disappear. Only Finn is always on.
-        </div>
-      </div>
-    </div>
-
   </div>
-</div>
 
+  <!-- MEMORY PAGE -->
+  <div id="page-memory" class="page">
+    <div class="page-header"><h2>🧠 Business Memory</h2></div>
+    <div class="memory-grid">
+      <div class="memory-card">
+        <h3>🏢 The Business</h3>
+        <ul>
+          <li><strong>Premier Painting &amp; Wallpapering</strong></li>
+          <li>22 years · North Shore MA · Greater Boston · NH</li>
+          <li>Bill Gilmore + Nikolai Gilmore (co-owners)</li>
+          <li>Benjamin Moore products</li>
+          <li>Google Guaranteed · 110% Satisfaction Guarantee</li>
+          <li>No money down until proved ourselves</li>
+        </ul>
+      </div>
+      <div class="memory-card">
+        <h3>🎯 Services</h3>
+        <ul>
+          <li>Interior &amp; exterior painting</li>
+          <li>Wallpaper install &amp; removal</li>
+          <li>Deck staining &amp; pressure washing</li>
+          <li>Trim, cabinet, clapboard work</li>
+          <li>Turnover &amp; maintenance painting</li>
+          <li>Commercial painting</li>
+        </ul>
+      </div>
+      <div class="memory-card">
+        <h3>🗺️ Target Markets</h3>
+        <ul>
+          <li>Danvers, Topsfield, Boxford</li>
+          <li>Hamilton, Wenham, West Newbury</li>
+          <li>North Shore MA + Greater Boston</li>
+          <li>Higher-end homeowners</li>
+          <li>Property managers &amp; apartment communities</li>
+          <li>Commercial clients</li>
+        </ul>
+      </div>
+      <div class="memory-card">
+        <h3>🔧 Tech Stack</h3>
+        <ul>
+          <li><strong>CRM:</strong> GoHighLevel</li>
+          <li><strong>Estimates:</strong> PaintScout</li>
+          <li><strong>Automation:</strong> n8n</li>
+          <li><strong>AI Phone:</strong> Retell AI</li>
+          <li><strong>SMS/Calls:</strong> Twilio</li>
+          <li><strong>Postcards:</strong> PostcardMania EDDM</li>
+        </ul>
+      </div>
+      <div class="memory-card">
+        <h3>💡 Brand Concepts</h3>
+        <ul>
+          <li><strong>Paintenance™</strong> — maintenance painting program</li>
+          <li><strong>Painter-On-Demand</strong> — fast response positioning</li>
+          <li><strong>VIP Customer Offers</strong> — repeat client rewards</li>
+          <li><strong>Forever Reward</strong> — loyalty program concept</li>
+          <li>Dan Kennedy direct-response style (when asked)</li>
+        </ul>
+      </div>
+      <div class="memory-card">
+        <h3>📈 Current Focus</h3>
+        <ul>
+          <li>Google Ads + GBP + Local SEO</li>
+          <li>EDDM postcard campaigns</li>
+          <li>Email list reactivation</li>
+          <li>Better follow-up systems</li>
+          <li>Higher trust, higher conversion</li>
+          <li>Consistent lead flow year-round</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
 <script>
-// ===== CONFIG =====
 (function(){
   if(!localStorage.getItem('pp_mc_cfg')){
-    const _d = atob('eyJhdF90b2tlbiI6ICJwYXR1cTZnSG5PdFZZVUZVOS5iODY5OGQ5Yzc0ODg1Mzk1NDExYmFjNTZlZWMxZDRkZWQyOWI2MGUyYzJiNzAzZWFlODRiZGY1NDY2NzU0ZDhhIiwgImF0X2Jhc2UiOiAiYXBwb3F2bVprdFJuTUxDYlYiLCAiYXRfdGFibGUiOiAidGJsR3NtV0twQ2VYakNyWXMiLCAibjhuX2Jhc2UiOiAiaHR0cHM6Ly9wcmVtaWVycGFpbnRpbmcuYXBwLm44bi5jbG91ZCIsICJuOG5fa2V5IjogImV5SmhiR2NpT2lKSVV6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUp6ZFdJaU9pSmpPREJpWVRrMk55MWpNV1kxTFRReU4ySXRPRE00TkMwelpUZzJNak14TVRjMk5EZ2lMQ0pwYzNNaU9pSnVPRzRpTENKaGRXUWlPaUp3ZFdKc2FXTXRZWEJwSWl3aWFuUnBJam9pT1RreVpUZGlZekl0WW1Wa09DMDBNVEUxTFRnNFpHRXRObUUwTmpnNVlqZzVZbVZoSWl3aWFXRjBJam94TnpjM01UVTNOVFV5ZlEuNmpFdlMzT2ZoRVY0aFNiX1NVLUp1UWlZQmJDU0FSLXhEdlBza1BxZUtrMCJ9');
-    localStorage.setItem('pp_mc_cfg', _d);
+    var _d=atob('eyJhdF90b2tlbiI6ICJwYXR1cTZnSG5PdFZZVUZVOS5iODY5OGQ5Yzc0ODg1Mzk1NDExYmFjNTZlZWMxZDRkZWQyOWI2MGUyYzJiNzAzZWFlODRiZGY1NDY2NzU0ZDhhIiwgImF0X2Jhc2UiOiAiYXBwb3F2bVprdFJuTUxDYlYiLCAiYXRfdGFibGUiOiAidGJsR3NtV0twQ2VYakNyWXMiLCAibjhuX2Jhc2UiOiAiaHR0cHM6Ly9wcmVtaWVycGFpbnRpbmcuYXBwLm44bi5jbG91ZCIsICJuOG5fa2V5IjogImV5SmhiR2NpT2lKSVV6STFOaUlzSW5SNWNDSTZJa3BYVkNKOS5leUp6ZFdJaU9pSmpPREJpWVRrMk55MWpNV1kxTFRReU4ySXRPRE00TkMwelpUZzJNak14TVRjMk5EZ2lMQ0pwYzNNaU9pSnVPRzRpTENKaGRXUWlPaUp3ZFdKc2FXTXRZWEJwSWl3aWFuUnBJam9pT1RreVpUZGlZekl0WW1Wa09DMDBNVEUxTFRnNFpHRXRObUUwTmpnNVlqZzVZbVZoSWl3aWFXRjBJam94TnpjM01UVTNOVFV5ZlEuNmpFdlMzT2ZoRVY0aFNiX1NVLUp1UWlZQmJDU0FSLXhEdlBza1BxZUtrMCJ9');
+    localStorage.setItem('pp_mc_cfg',_d);
   }
 })();
-const _CFG = JSON.parse(localStorage.getItem('pp_mc_cfg') || '{}');
-const AIRTABLE_TOKEN = _CFG.at_token || '';
-const AIRTABLE_BASE = _CFG.at_base || 'appoqvmZktRnMLCbV';
-const AIRTABLE_TABLE = _CFG.at_table || 'tblGsmWKpCeXjCrYs';
-const N8N_BASE = _CFG.n8n_base || 'https://premierpainting.app.n8n.cloud';
-const N8N_KEY = _CFG.n8n_key || '';
+var _CFG=JSON.parse(localStorage.getItem('pp_mc_cfg')||'{}');
+var AIRTABLE_TOKEN=_CFG.at_token||'';
+var AIRTABLE_BASE=_CFG.at_base||'appoqvmZktRnMLCbV';
+var N8N_BASE=_CFG.n8n_base||'';
+var N8N_KEY=_CFG.n8n_key||'';
+var AT_CLIENTS='tblWfs3iE96gjyRgW';
+var AT_JOBS='tbl9tj2gGAfjRCVQL';
+var AT_MATERIALS='tblGsmWKpCeXjCrYs';
 
-// ===== NAV =====
-function showPage(name) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  document.getElementById('nav-' + name).classList.add('active');
-  if (name === 'receipts') loadReceipts();
-  if (name === 'tasks') loadTasks();
-  if (name === 'activity') loadActivity();
-  if (name === 'memory') loadMemory();
+var PAGE_TITLES={'office':'🏢 Office','pipeline':'📊 Pipeline','jobs':'🏠 Jobs','receipts':'🧾 Receipts','tasks':'⚡ Tasks','activity':'📡 Activity','memory':'🧠 Memory'};
+var currentPage='office';
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('#sidebar nav a').forEach(function(a){a.classList.remove('active')});
+  var pg=document.getElementById('page-'+id);
+  if(pg)pg.classList.add('active');
+  var links=document.querySelectorAll('#sidebar nav a');
+  links.forEach(function(a){if(a.getAttribute('onclick')&&a.getAttribute('onclick').indexOf("'"+id+"'")>-1)a.classList.add('active')});
+  document.getElementById('page-title').textContent=PAGE_TITLES[id]||id;
+  currentPage=id;
+  if(id==='pipeline')loadPipeline();
+  if(id==='jobs')loadJobs();
+  if(id==='receipts')loadReceipts();
 }
 
-// ===== CLOCK =====
-function updateClock() {
-  const now = new Date();
-  const et = new Date(now.toLocaleString('en-US', {timeZone: 'America/New_York'}));
-  const h = et.getHours().toString().padStart(2,'0');
-  const m = et.getMinutes().toString().padStart(2,'0');
-  const ampm = et.getHours() >= 12 ? 'PM' : 'AM';
-  const h12 = ((et.getHours() % 12) || 12).toString().padStart(2,'0');
-  document.getElementById('clock').textContent = `${h12}:${m} ${ampm} ET`;
-}
-setInterval(updateClock, 1000); updateClock();
+function fmt$(n){if(!n&&n!==0)return'—';return'$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0})}
+function fmtDate(s){if(!s)return'—';try{return new Date(s).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}catch(e){return s}}
 
-// ===== OFFICE (animated) =====
-const FINN_LINES = [
-  '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
-  '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
-  '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
-  '> memory updated','> mission control: live','> analyzing invoice data',
-  '> no missing addresses found','> daily brief scheduled 8AM','> all systems nominal'
-];
-const FINN_THOUGHTS = [
-  '🤔 Checking for new receipts...','💡 Running the morning brief at 8 AM!','📊 Airtable looking clean.',
-  '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
-  '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
-  '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.','💬 Just updated the activity log.'
-];
-const TICKER_MSGS = [
-  '📧 Gmail scanner running — both inboxes active',
-  '🧾 Last receipt logged: Home Decor Group — Peabody',
-  '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
-  '✅ Airtable sync: all material costs up to date',
-  '🤖 Discord bot online — Nikolai\'s Market Lab connected',
-  '📊 Mission control deployed to GitHub Pages',
-  '⚡ n8n: Receipt Scanner workflows active on both inboxes',
-  '🔔 SMS alerts configured → +1 978-429-5580'
-];
-
-let finnPos = {x:52, y:120};
-let tickerIdx = 0;
-let thoughtIdx = 0;
-let lineIdx = 0;
-let speechTimer, tickerTimer;
-
-function buildOffice() {
-  const floor = document.getElementById('office-floor');
-  if (!floor) return;
-  const FINN_LINES2 = [
-    '> scanning Gmail receipts...','> checking Airtable jobs...','> n8n workflows: all green',
-    '> running receipt parser','> Claude API: responsive','> Twilio SMS: standby',
-    '> cron jobs: 4 active','> airtable sync complete','> discord bot: online',
-    '> memory updated','> mission control: live','> analyzing invoice data'
-  ];
-  const FINN_THOUGHTS2 = [
-    '🤔 Checking for new receipts...','💡 Morning brief fires at 8 AM!','📊 Airtable looking clean.',
-    '⚡ n8n workflows are all green.','🎯 Watching for SMS alerts.','☕ Busy keeping things running.',
-    '🔍 Scanning Gmail right now...','✅ No issues detected.','🚀 Discord connected!',
-    '📋 Ready for estimates anytime.','🤖 Sub-agents on standby.'
-  ];
-  const TICKER2 = [
-    '📧 Gmail scanner running — both inboxes active',
-    '🧾 Last receipt: Home Decor Group — Peabody',
-    '📅 Morning brief fires Monday 8:00 AM ET → #daily-picks',
-    '✅ Airtable sync: material costs up to date',
-    '🤖 Discord bot online — Nikolai\'s Market Lab connected',
-    '⚡ n8n: Receipt Scanner active on both inboxes',
-    '🔔 SMS alerts configured → +1 978-429-5580'
-  ];
-  const ROBOT = `<div class="finn-robot"><div class="r-antenna"></div><div class="r-head"><div class="r-eye"></div><div class="r-eye"></div></div><div class="r-body"><div class="r-led g"></div><div class="r-led b"></div><div class="r-led y"></div></div></div>`;
-  const desks = [
-    {x:55, y:75, label:'Finn',   cls:'green', main:true},
-    {x:255,y:65, label:'Scout',  cls:'blue'},
-    {x:455,y:75, label:'Scribe', cls:'blue'},
-    {x:655,y:65, label:'Sync',   cls:'blue'},
-  ];
-  floor.innerHTML = `
-    <div class="o-plant" style="left:8px;top:8px;animation-delay:0s">🌿</div>
-    <div class="o-plant" style="left:8px;top:230px;animation-delay:1.5s">🪴</div>
-    <div class="o-plant" style="left:820px;top:18px;animation-delay:.8s">🌿</div>
-    <div class="o-plant" style="left:820px;top:270px;animation-delay:2s">🪴</div>
-    <div style="position:absolute;left:106px;top:108px;font-size:16px;z-index:5">☕
-      <div class="steam" style="left:2px;top:-2px"></div>
-      <div class="steam" style="left:7px;top:-2px;animation-delay:.7s"></div>
-    </div>
-    ${desks.map(d=>`
-      <div class="o-desk" style="left:${d.x}px;top:${d.y}px;position:absolute">
-        <div class="o-desk-top">
-          <div class="o-monitor">
-            <div class="o-screen ${d.cls}" id="screen-${d.label}"><div class="term" id="term-${d.label}"></div></div>
-            <div class="o-stand"></div><div class="o-base"></div>
-          </div>
-        </div>
-        <div class="o-desk-leg"></div>
-        <div style="font-size:9px;color:var(--muted);margin-top:3px;text-align:center">${d.label}</div>
-      </div>`).join('')}
-    <div class="o-char active" id="finn-char" style="left:${desks[0].x+10}px;top:${desks[0].y-60}px">${ROBOT}</div>
-    <div class="o-char sleep" style="left:${desks[1].x+8}px;top:${desks[1].y-42}px">🔍</div>
-    <div class="o-char sleep" style="left:${desks[2].x+8}px;top:${desks[2].y-42}px">📋</div>
-    <div class="o-char sleep" style="left:${desks[3].x+8}px;top:${desks[3].y-42}px">⚡</div>
-    <div class="speech" id="finn-speech" style="left:${desks[0].x+4}px;top:${desks[0].y-118}px"></div>
-    <div class="o-ticker"><span class="ticker-badge">● LIVE</span><span class="ticker-msg" id="ticker-text">${TICKER2[0]}</span></div>
-  `;
-  // Terminal typing
-  let lIdx2 = 0;
-  const term = document.getElementById('term-Finn');
-  if (term) setInterval(()=>{
-    const l = document.createElement('div');
-    l.className = 'term-line';
-    l.textContent = FINN_LINES2[lIdx2++ % FINN_LINES2.length];
-    term.appendChild(l);
-    if (term.children.length > 10) term.removeChild(term.firstChild);
-    if (Math.random()>.65) {
-      const fl = document.getElementById('office-floor'), fn = document.getElementById('finn-char');
-      if (fl && fn) { const s=document.createElement('div'); s.className='spark'; s.textContent=['✨','⚡','💡','🎯'][Math.floor(Math.random()*4)]; s.style.left=(parseInt(fn.style.left)+14)+'px'; s.style.top=(parseInt(fn.style.top)-10)+'px'; fl.appendChild(s); setTimeout(()=>s.remove(),900); }
-    }
-  }, 1800);
-  // Speech bubbles
-  const bubble = document.getElementById('finn-speech');
-  const finnEl = document.getElementById('finn-char');
-  let tIdx2 = 0;
-  function showThought() {
-    if (!bubble||!finnEl) return;
-    bubble.textContent = FINN_THOUGHTS2[tIdx2++ % FINN_THOUGHTS2.length];
-    bubble.style.left = Math.max(8, parseInt(finnEl.style.left)-20)+'px';
-    bubble.style.top  = (parseInt(finnEl.style.top)-70)+'px';
-    bubble.classList.add('show');
-    setTimeout(()=>bubble.classList.remove('show'), 3500);
+function atFetch(table,params,cb){
+  var url='https://api.airtable.com/v0/'+AIRTABLE_BASE+'/'+table+'?'+params;
+  var records=[];
+  function fetchPage(offset){
+    var u=url+(offset?'&offset='+offset:'');
+    fetch(u,{headers:{'Authorization':'Bearer '+AIRTABLE_TOKEN}})
+      .then(function(r){return r.json()})
+      .then(function(d){
+        if(d.error){cb(null,d.error);return}
+        records=records.concat(d.records||[]);
+        if(d.offset)fetchPage(d.offset);
+        else cb(records,null);
+      })
+      .catch(function(e){cb(null,e.message)});
   }
-  showThought(); setInterval(showThought, 7000);
-  // Finn wanders
-  const targets = desks.map((d,i)=>({x:d.x+10,y:d.y-60,i}));
-  let wIdx2 = 0;
-  setInterval(()=>{
-    if (!finnEl) return;
-    wIdx2 = (wIdx2+1)%targets.length;
-    const t = targets[wIdx2];
-    finnEl.style.left = t.x+'px'; finnEl.style.top = t.y+'px';
-    if (bubble) { bubble.style.left=Math.max(8,t.x-20)+'px'; bubble.style.top=(t.y-70)+'px'; }
-    desks.forEach((d,i)=>{ const s=document.getElementById('screen-'+d.label); if(s) s.className='o-screen '+(i===t.i?'green':'blue'); });
-    setTimeout(()=>{ const fl=document.getElementById('office-floor'); if(!fl)return; const s=document.createElement('div'); s.className='spark'; s.textContent='✨'; s.style.left=(t.x+10)+'px'; s.style.top=(t.y-16)+'px'; fl.appendChild(s); setTimeout(()=>s.remove(),900); },900);
-  }, 6000);
-  // Ticker
-  let tkIdx2 = 0;
-  setInterval(()=>{ tkIdx2=(tkIdx2+1)%TICKER2.length; const el=document.getElementById('ticker-text'); if(el){el.style.animation='none';el.textContent=TICKER2[tkIdx2];void el.offsetWidth;el.style.animation='';} },5000);
-  // Agent cards
-  const agents=[{name:'Finn',emoji:'🤖',role:'Main Agent — Always On',stat:'Primary agent for Premier Painting',active:true},{name:'Scout',emoji:'🔍',role:'Sub-agent — On Demand',stat:'Research & web tasks',active:false},{name:'Scribe',emoji:'📋',role:'Sub-agent — On Demand',stat:'Estimates, SOW, follow-up copy',active:false},{name:'Sync',emoji:'⚡',role:'Sub-agent — On Demand',stat:'n8n automation & Airtable syncs',active:false}];
-  const cardsEl=document.getElementById('agent-cards');
-  if(cardsEl) cardsEl.innerHTML=agents.map(a=>`<div class="agent-card" style="${!a.active?'opacity:.65':''}"><div class="agent-avatar">${a.emoji}</div><div class="agent-info"><div class="agent-name">${a.name} ${a.active?'<span class="badge badge-green" style="font-size:10px">● active</span>':'<span class="badge badge-gray" style="font-size:10px">standby</span>'}</div><div class="agent-role">${a.role}</div><div class="agent-stat">${a.stat}</div></div></div>`).join('');
+  fetchPage(null);
 }
-// dummy makeDesk (no longer used)
-function makeDesk(x, y, label, screenClass) { return ''; } 
 
-// ===== RECEIPTS =====
-async function loadReceipts() {
-  const tbody = document.getElementById('receipts-tbody');
-  tbody.innerHTML = '<tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading from Airtable...</div></td></tr>';
-  
-  try {
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}?sort[0][field]=Date%20Purchased&sort[0][direction]=desc&maxRecords=25`;
-    const res = await fetch(url, {headers: {'Authorization': 'Bearer ' + AIRTABLE_TOKEN}});
-    const data = await res.json();
-    
-    if (!data.records || !data.records.length) {
-      tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No receipts found</div></td></tr>';
-      return;
-    }
+/* STATUS BADGES */
+var STATUS_BADGE={
+  'Estimate Sent':'<span class="badge b-blue">Estimate Sent</span>',
+  'Follow-Up':'<span class="badge b-yellow">Follow-Up</span>',
+  'Contacted':'<span class="badge b-gray">Contacted</span>',
+  'Estimate Scheduled':'<span class="badge b-purple">Est. Scheduled</span>',
+  'Estimate Accepted':'<span class="badge b-green">Accepted</span>',
+  'Scheduled':'<span class="badge b-green">Scheduled</span>'
+};
+function statusBadge(s){return STATUS_BADGE[s]||('<span class="badge b-gray">'+s+'</span>')}
 
-    // Stats
-    const today = new Date().toISOString().slice(0,10);
-    const thisMonth = today.slice(0,7);
-    const todayTotal = data.records.filter(r => r.fields['Date Purchased'] === today).reduce((s,r) => s + (r.fields['Total Cost']||0), 0);
-    const monthTotal = data.records.filter(r => (r.fields['Date Purchased']||'').startsWith(thisMonth)).reduce((s,r) => s + (r.fields['Total Cost']||0), 0);
-    const autoCount = data.records.filter(r => (r.fields['Notes']||'').includes('email:')).length;
-    
-    document.getElementById('receipt-stats').innerHTML = `
-      <div class="card card-green"><div class="card-title">Today's Spend</div><div class="card-value">$${todayTotal.toFixed(2)}</div><div class="card-sub">materials purchased today</div></div>
-      <div class="card card-blue"><div class="card-title">This Month</div><div class="card-value">$${monthTotal.toFixed(2)}</div><div class="card-sub">total material costs</div></div>
-      <div class="card card-yellow"><div class="card-title">Auto-Logged</div><div class="card-value">${autoCount}</div><div class="card-sub">via Gmail scanner</div></div>
-      <div class="card card-red"><div class="card-title">Total Records</div><div class="card-value">${data.records.length}</div><div class="card-sub">last 25 shown</div></div>
-    `;
+/* PIPELINE */
+var pipelineLoaded=false;
+function loadPipeline(){
+  document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="5" class="loading-row">Loading pipeline data...</td></tr>';
+  var statuses=['Estimate Sent','Follow-Up','Contacted','Estimate Scheduled','Estimate Accepted','Scheduled'];
+  var filterFormula='OR('+statuses.map(function(s){return'%7BLead Status%7D%3D%22'+encodeURIComponent(s)+'%22'}).join(',')+')'
+  var params='filterByFormula='+filterFormula+'&fields%5B%5D=Name&fields%5B%5D=Phone&fields%5B%5D=Town&fields%5B%5D=Lead+Status&fields%5B%5D=Estimate+Amount&fields%5B%5D=Date+Added&pageSize=100';
+  atFetch(AT_CLIENTS,params,function(recs,err){
+    if(err){document.getElementById('pipeline-tbody').innerHTML='<tr><td colspan="5" class="error-row">Error: '+err+'</td></tr>';return}
+    recs.sort(function(a,b){return(b.fields['Estimate Amount']||0)-(a.fields['Estimate Amount']||0)});
+    var total=0,sent=0,accepted=0,followups=0;
+    recs.forEach(function(r){var f=r.fields;total+=(f['Estimate Amount']||0);if(f['Lead Status']==='Estimate Sent')sent++;if(f['Lead Status']==='Estimate Accepted'||f['Lead Status']==='Scheduled')accepted++;if(f['Lead Status']==='Follow-Up')followups++;});
+    document.getElementById('pl-total').textContent=fmt$(total);
+    document.getElementById('pl-sent').textContent=sent;
+    document.getElementById('pl-accepted').textContent=accepted;
+    var rows=recs.map(function(r){var f=r.fields;return'<tr><td>'+esc(f.Name||'—')+'</td><td>'+esc(f.Town||'—')+'</td><td>'+statusBadge(f['Lead Status']||'')+'</td><td>'+fmt$(f['Estimate Amount'])+'</td><td>'+fmtDate(f['Date Added'])+'</td></tr>'}).join('');
+    document.getElementById('pipeline-tbody').innerHTML=rows||'<tr><td colspan="5" class="loading-row">No pipeline records found</td></tr>';
+    pipelineLoaded=true;
+  });
+}
 
-    tbody.innerHTML = data.records.map(r => {
-      const f = r.fields;
-      const isAuto = (f['Notes']||'').includes('email:');
-      const job = f['Job'] || '<span style="color:var(--red)">⚠️ Missing</span>';
-      return `<tr>
-        <td>${f['Item Name'] || '—'}</td>
-        <td>${f['Supplier'] || '—'}</td>
-        <td>${job}</td>
-        <td>${f['Date Purchased'] || '—'}</td>
-        <td><strong>$${(f['Total Cost']||0).toFixed(2)}</strong></td>
-        <td><span class="badge ${isAuto ? 'badge-green' : 'badge-gray'}">${isAuto ? '🤖 auto' : '✏️ manual'}</span></td>
-      </tr>`;
-    }).join('');
-  } catch(e) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state">⚠️ Error loading: ${e.message}</div></td></tr>`;
+/* JOBS */
+var jobsLoaded=false;
+function loadJobs(){
+  document.getElementById('jobs-grid').innerHTML='<div class="loading-row" style="grid-column:1/-1">Loading jobs...</div>';
+  var params='filterByFormula=%7BJob+Status%7D%3D%22In+Progress%22&fields%5B%5D=Job+name&fields%5B%5D=Client&fields%5B%5D=Job+Status&fields%5B%5D=Job+Address&fields%5B%5D=Job+Type&fields%5B%5D=Start+Date&pageSize=100';
+  atFetch(AT_JOBS,params,function(recs,err){
+    if(err){document.getElementById('jobs-grid').innerHTML='<div class="error-row">Error: '+err+'</div>';return}
+    if(!recs.length){document.getElementById('jobs-grid').innerHTML='<div class="loading-row" style="grid-column:1/-1">No active jobs found</div>';return}
+    var needClients=recs.filter(function(r){return!r.fields['Job name']&&r.fields['Client']&&r.fields['Client'].length});
+    if(needClients.length){
+      var clientIds=[...new Set(needClients.flatMap(function(r){return r.fields['Client']||[]}))];
+      var formula='OR('+clientIds.map(function(id){return'RECORD_ID()%3D%22'+id+'%22'}).join(',')+')'
+      atFetch(AT_CLIENTS,'filterByFormula='+formula+'&fields%5B%5D=Name&pageSize=100',function(crecs,cerr){
+        var cmap={};
+        if(crecs)crecs.forEach(function(c){cmap[c.id]=c.fields.Name});
+        renderJobs(recs,cmap);
+      });
+    } else {renderJobs(recs,{})}
+  });
+}
+function renderJobs(recs,cmap){
+  var html=recs.map(function(r){
+    var f=r.fields;
+    var name=f['Job name']||(f['Client']&&f['Client'].length?cmap[f['Client'][0]]||'Unnamed Job':'Unnamed Job');
+    return '<div class="job-card"><h3>'+esc(name)+'</h3><div class="job-meta-row"><strong>Address</strong>'+esc(f['Job Address']||'—')+'</div><div class="job-meta-row"><strong>Type</strong>'+esc(f['Job Type']||'—')+'</div><div class="job-meta-row"><strong>Started</strong>'+fmtDate(f['Start Date'])+'</div></div>';
+  }).join('');
+  document.getElementById('jobs-grid').innerHTML=html;
+  jobsLoaded=true;
+}
+
+/* RECEIPTS */
+var receiptsLoaded=false;
+function loadReceipts(){
+  document.getElementById('receipts-tbody').innerHTML='<tr><td colspan="6" class="loading-row">Loading receipts...</td></tr>';
+  var params='fields%5B%5D=Item+Name&fields%5B%5D=Supplier&fields%5B%5D=Job&fields%5B%5D=Date+Purchased&fields%5B%5D=Total+Cost&fields%5B%5D=Notes&fields%5B%5D=Purchased+By&sort%5B0%5D%5Bfield%5D=Date+Purchased&sort%5B0%5D%5Bdirection%5D=desc&pageSize=100';
+  atFetch(AT_MATERIALS,params,function(recs,err){
+    if(err){document.getElementById('receipts-tbody').innerHTML='<tr><td colspan="6" class="error-row">Error: '+err+'</td></tr>';return}
+    var now=new Date();var todayStr=now.toISOString().slice(0,10);
+    var monthStr=now.toISOString().slice(0,7);
+    var todayTotal=0,monthTotal=0,autoCount=0;
+    recs.forEach(function(r){
+      var f=r.fields;var cost=f['Total Cost']||0;var dp=f['Date Purchased']||'';
+      if(dp.startsWith(todayStr))todayTotal+=cost;
+      if(dp.startsWith(monthStr))monthTotal+=cost;
+      if(f['Purchased By']&&f['Purchased By'].toLowerCase().indexOf('auto')>-1)autoCount++;
+    });
+    document.getElementById('r-today').textContent=fmt$(todayTotal);
+    document.getElementById('r-month').textContent=fmt$(monthTotal);
+    document.getElementById('r-auto').textContent=autoCount;
+    document.getElementById('r-total').textContent=recs.length;
+    var rows=recs.map(function(r){
+      var f=r.fields;
+      var isAuto=f['Purchased By']&&f['Purchased By'].toLowerCase().indexOf('auto')>-1;
+      var src=isAuto?'<span class="badge b-green">auto</span>':'<span class="badge b-gray">manual</span>';
+      return'<tr><td>'+esc(f['Item Name']||'—')+'</td><td>'+esc(f['Supplier']||'—')+'</td><td>'+esc(Array.isArray(f['Job'])?f['Job'].join(', '):(f['Job']||'—'))+'</td><td>'+fmtDate(f['Date Purchased'])+'</td><td>'+fmt$(f['Total Cost'])+'</td><td>'+src+'</td></tr>'}).join('');
+    document.getElementById('receipts-tbody').innerHTML=rows||'<tr><td colspan="6" class="loading-row">No receipts found</td></tr>';
+    receiptsLoaded=true;
+  });
+}
+
+/* OFFICE STATS (load on init) */
+function loadOfficeStats(){
+  /* Pipeline total */
+  var statuses=['Estimate Sent','Follow-Up','Contacted','Estimate Scheduled','Estimate Accepted','Scheduled'];
+  var ff='OR('+statuses.map(function(s){return'%7BLead Status%7D%3D%22'+encodeURIComponent(s)+'%22'}).join(',')+')'
+  atFetch(AT_CLIENTS,'filterByFormula='+ff+'&fields%5B%5D=Estimate+Amount&fields%5B%5D=Lead+Status&pageSize=100',function(recs){
+    if(!recs)return;
+    var total=0,sent=0;
+    recs.forEach(function(r){total+=(r.fields['Estimate Amount']||0);if(r.fields['Lead Status']==='Estimate Sent')sent++;});
+    document.getElementById('stat-pipeline').textContent=fmt$(total);
+    document.getElementById('stat-estimates').textContent=sent;
+  });
+  /* Active jobs */
+  atFetch(AT_JOBS,'filterByFormula=%7BJob+Status%7D%3D%22In+Progress%22&fields%5B%5D=Job+name&pageSize=100',function(recs){
+    if(recs)document.getElementById('stat-jobs').textContent=recs.length;
+  });
+  /* This month materials */
+  var now=new Date();var ms=now.toISOString().slice(0,7);
+  atFetch(AT_MATERIALS,'fields%5B%5D=Total+Cost&fields%5B%5D=Date+Purchased&pageSize=100',function(recs){
+    if(!recs)return;
+    var m=0;recs.forEach(function(r){if((r.fields['Date Purchased']||'').startsWith(ms))m+=(r.fields['Total Cost']||0)});
+    document.getElementById('stat-materials').textContent=fmt$(m);
+  });
+}
+
+/* ROBOT WALK */
+var desks=[5,30,56,79];
+var deskNames=['Finn','Scout','Scribe','Sync'];
+var robotIdx=0;
+var speeches=[
+  'Checking pipeline... ' + deskNames[0] + ' desk',
+  'All systems nominal 🟢',
+  'New lead just came in!',
+  'Following up on estimates...',
+  'Materials logged ✓',
+  'Google Ads looking good',
+  'Estimate sent to Topsfield',
+  'Job started in Danvers 🎨',
+  'Checking receipts...',
+  '22 years of trust 💪'
+];
+function walkRobot(){
+  robotIdx=(robotIdx+1)%desks.length;
+  var wrap=document.getElementById('robot-wrap');
+  if(!wrap)return;
+  wrap.style.left=desks[robotIdx]+'%';
+  var bub=document.getElementById('speech-bubble');
+  if(bub){
+    bub.textContent=speeches[Math.floor(Math.random()*speeches.length)];
+    bub.classList.add('show');
+    setTimeout(function(){bub.classList.remove('show')},4000);
   }
 }
+setInterval(walkRobot,6000);
+setTimeout(function(){
+  var bub=document.getElementById('speech-bubble');
+  if(bub){bub.textContent='Good morning! Loading data... 🐾';bub.classList.add('show');setTimeout(function(){bub.classList.remove('show')},3500)}
+},1000);
 
-// ===== TASKS =====
-async function loadTasks() {
-  const el = document.getElementById('cron-list');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div> Loading...</div>';
-
-  // Show static known cron jobs (n8n workflows act as our crons)
-  const tasks = [
-    { icon: '📧', name: 'Gmail Receipt Scanner — team@gopremierpainting', schedule: 'Every hour', last: 'Hourly', status: 'active', id: 'SxerJu26SzoCLnUZ' },
-    { icon: '📧', name: 'Gmail Receipt Scanner — contactapainter', schedule: 'Every hour', last: 'Hourly', status: 'active', id: '8KQAUrPXrZgr9CU6' },
-  ];
-
-  el.innerHTML = tasks.map(t => `
-    <div class="cron-item">
-      <div class="cron-icon">${t.icon}</div>
-      <div class="cron-info">
-        <div class="cron-name">${t.name}</div>
-        <div class="cron-schedule">${t.schedule} · <span style="color:var(--muted);font-size:10px">ID: ${t.id}</span></div>
-      </div>
-      <div>
-        <span class="badge ${t.status === 'active' ? 'badge-green' : 'badge-red'}">● ${t.status}</span>
-      </div>
-    </div>
-  `).join('');
-
-  // Scanner status
-  const scanEl = document.getElementById('scanner-status');
-  scanEl.innerHTML = `
-    <div style="padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-      <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Gmail Accounts Monitored</div>
-        <div style="font-size:13px;margin-bottom:4px">📧 team@gopremierpainting.com</div>
-        <div style="font-size:13px">📧 contactapainter@gmail.com</div>
-      </div>
-      <div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Sender Filters</div>
-        <div style="font-size:12px;color:var(--muted)">ar@homedecorgroup.com</div>
-        <div style="font-size:12px;color:var(--muted)">HomeDepot@order.homedepot.com</div>
-        <div style="font-size:12px;color:var(--muted)">hardwarestore@alerts.hardwarestore.com</div>
-      </div>
-    </div>
-    <div style="padding: 10px 18px; border-top: 1px solid var(--border); background: rgba(245,158,11,.05);">
-      <span style="font-size:12px;color:var(--accent2)">⚠️ contactapainter OAuth pending — needs manual credential connection in n8n</span>
-    </div>
-  `;
+/* CLOCK */
+function updateClock(){
+  var now=new Date();
+  document.getElementById('topbar-time').textContent=now.toLocaleString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:'America/New_York',timeZoneName:'short'});
 }
+updateClock();
+setInterval(updateClock,30000);
 
-// ===== ACTIVITY =====
-function loadActivity() {
-  const activities = [
-    { text: 'Receipt scanner deployed for both Gmail inboxes', time: 'May 7, 2026', dot: 'var(--green)' },
-    { text: 'Material costs auto-logged: 7 items from Home Decor Group → Airtable (16 Jewett Rd)', time: 'May 7, 2026', dot: 'var(--green)' },
-    { text: 'Diagnosed splitInBatches bug — workflows rebuilt without it', time: 'May 7, 2026', dot: 'var(--accent)' },
-    { text: 'Gmail sender filters updated: added Home Depot, Aubuchon Hardware, Home Decor Group', time: 'May 7, 2026', dot: 'var(--accent)' },
-    { text: 'contactapainter Gmail OAuth credentials identified', time: 'May 7, 2026', dot: 'var(--accent2)' },
-    { text: 'Mission Control dashboard built 🎉', time: 'May 8, 2026', dot: 'var(--green)' },
-  ];
+/* ESCAPE HTML */
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
-  const list = document.getElementById('activity-list');
-  list.innerHTML = activities.reverse().map((a, i, arr) => `
-    <div class="activity-item">
-      <div class="activity-line">
-        <div class="activity-dot" style="background:${a.dot}"></div>
-        ${i < arr.length - 1 ? '<div class="activity-connector"></div>' : ''}
-      </div>
-      <div class="activity-content">
-        <div class="activity-text">${a.text}</div>
-        <div class="activity-time">${a.time}</div>
-      </div>
-    </div>
-  `).join('');
-}
-
-// ===== MEMORY =====
-function loadMemory() {
-  const memories = [
-    { date: 'Current Setup', text: 'Receipt Scanner running on both Gmail inboxes (hourly). Logs to Airtable base appoqvmZktRnMLCbV. SMS alerts via Twilio to +19784295580 if job address missing.' },
-    { date: 'Business Context', text: 'Premier Painting & Wallpapering — North Shore MA, 22 years. Bill Gilmore + Nikolai Gilmore. Uses PaintScout, GoHighLevel, Retell AI, n8n, Google Workspace.' },
-    { date: 'Pending Action', text: 'contactapainter Gmail OAuth still needs manual completion in n8n UI. Client ID: 420679841783-fri2bucme6tng5vklc0qrudahrjfvmpe.apps.googleusercontent.com' },
-    { date: 'Key Positioning', text: '110% Satisfaction Guarantee, no money down, 22 years, Google Guaranteed, Benjamin Moore. Target: Danvers, Topsfield, Boxford, Hamilton, Wenham, West Newbury area.' },
-  ];
-
-  const list = document.getElementById('memory-list');
-  list.innerHTML = memories.map(m => `
-    <div class="memory-entry">
-      <div class="memory-date">${m.date}</div>
-      <div class="memory-text">${m.text}</div>
-    </div>
-  `).join('');
-}
-
-function refreshAll() {
-  const activePage = document.querySelector('.page.active').id.replace('page-','');
-  if (activePage === 'receipts') loadReceipts();
-  if (activePage === 'tasks') loadTasks();
-}
-
-// ===== INIT =====
-buildOffice();
-loadActivity();
-loadMemory();
+/* INIT */
+loadOfficeStats();
 </script>
 </body>
 </html>
